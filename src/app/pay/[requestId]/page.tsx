@@ -10,6 +10,9 @@ import {
 } from "lucide-react";
 import { shortenAddress, isValidStellarAddress, prepareXLMPaymentTransaction, CONTRACT_ID } from "@/lib/stellar";
 import { isConnected, requestAccess, signTransaction } from "@stellar/freighter-api";
+import { formatErrorMessage } from "@/lib/utils";
+import { analytics } from "@/lib/analytics";
+import { monitoring } from "@/lib/monitoring";
 
 interface PaymentRequestData {
   id: string;
@@ -58,7 +61,7 @@ export default function PaymentRequestPage({ params }: { params: Promise<{ reque
       const res = await fetch(`/api/requests/${requestId}`);
       const data = await res.json();
       if (!res.ok) {
-        setError(data.error || "Payment request not found.");
+        setError(formatErrorMessage(data.error || "Payment request not found."));
       } else {
         setReq(data.request);
         if (data.request.status === "CONFIRMED") {
@@ -69,8 +72,8 @@ export default function PaymentRequestPage({ params }: { params: Promise<{ reque
           }
         }
       }
-    } catch {
-      setError("Failed to load payment request.");
+    } catch (err: any) {
+      setError(formatErrorMessage(err, "Failed to load payment request."));
     } finally {
       setLoading(false);
     }
@@ -94,14 +97,17 @@ export default function PaymentRequestPage({ params }: { params: Promise<{ reque
 
       const access = await requestAccess();
       if (access.error) {
-        setWalletErr(access.error);
+        setWalletErr(formatErrorMessage(access.error));
       } else if (access.address) {
         setWalletAddress(access.address);
         setWalletType("freighter");
         setStep("REVIEW");
+        analytics.trackWalletConnected("freighter", access.address);
       }
     } catch (err: any) {
-      setWalletErr(err?.message || "Failed to connect Freighter wallet.");
+      const safeMsg = formatErrorMessage(err, "Failed to connect Freighter wallet.");
+      setWalletErr(safeMsg);
+      monitoring.captureException(err, { context: "connectFreighter" });
     } finally {
       setConnecting(false);
     }
@@ -118,15 +124,17 @@ export default function PaymentRequestPage({ params }: { params: Promise<{ reque
         setWalletAddress(res.pubkey);
         setWalletType("albedo");
         setStep("REVIEW");
+        analytics.trackWalletConnected("albedo", res.pubkey);
       }
     } catch (err: any) {
-      setWalletErr(err?.message || "Albedo connection rejected or closed.");
+      const safeMsg = formatErrorMessage(err, "Albedo connection rejected or closed.");
+      setWalletErr(safeMsg);
     } finally {
       setConnecting(false);
     }
   };
 
-  // Connect manual address (for demo or custom signed transaction entry)
+  // Connect manual address
   const connectManual = () => {
     if (!isValidStellarAddress(manualAddress)) {
       setWalletErr("Please enter a valid Stellar wallet address (starts with 'G').");
@@ -135,6 +143,7 @@ export default function PaymentRequestPage({ params }: { params: Promise<{ reque
     setWalletAddress(manualAddress);
     setWalletType("manual");
     setStep("REVIEW");
+    analytics.trackWalletConnected("manual", manualAddress);
   };
 
   // Execute REAL Stellar Testnet transaction payment
@@ -144,6 +153,7 @@ export default function PaymentRequestPage({ params }: { params: Promise<{ reque
     setStep("SIGNING");
     setPayMsg("Preparing transaction for Stellar TESTNET...");
     setWalletErr("");
+    analytics.trackPaymentStarted(req.id, parseFloat(req.amount), walletType || "unknown");
 
     try {
       // 1. Prepare transaction XDR
@@ -155,7 +165,9 @@ export default function PaymentRequestPage({ params }: { params: Promise<{ reque
 
       if (prep.error || !prep.xdr) {
         setStep("FAILED");
-        setWalletErr(prep.error || "Failed to prepare transaction.");
+        const safeMsg = formatErrorMessage(prep.error || "Failed to prepare transaction.");
+        setWalletErr(safeMsg);
+        analytics.trackTransactionFailed(req.id, safeMsg);
         return;
       }
 
@@ -170,7 +182,9 @@ export default function PaymentRequestPage({ params }: { params: Promise<{ reque
         });
         if (signResult.error) {
           setStep("FAILED");
-          setWalletErr(signResult.error || "Transaction signature rejected by wallet.");
+          const safeMsg = formatErrorMessage(signResult.error || "Transaction signature rejected by wallet.");
+          setWalletErr(safeMsg);
+          analytics.trackTransactionFailed(req.id, safeMsg);
           return;
         }
         signedXdr = signResult.signedTxXdr;
@@ -182,7 +196,6 @@ export default function PaymentRequestPage({ params }: { params: Promise<{ reque
         });
         signedXdr = result.signed_envelope_xdr;
       } else {
-        // For manual fallback, request signature or submit XDR
         setStep("FAILED");
         setWalletErr("Manual address mode requires a wallet extension (Freighter/Albedo) to sign transactions.");
         return;
@@ -203,12 +216,15 @@ export default function PaymentRequestPage({ params }: { params: Promise<{ reque
       if (!horizonRes.ok || !horizonData.hash) {
         const detail = horizonData?.extras?.result_codes?.transaction || horizonData?.detail || "Transaction submission rejected on-chain.";
         setStep("FAILED");
-        setWalletErr(`Stellar Testnet submission failed: ${detail}`);
+        const safeMsg = `Stellar Testnet submission failed: ${formatErrorMessage(detail)}`;
+        setWalletErr(safeMsg);
+        analytics.trackTransactionFailed(req.id, safeMsg);
         return;
       }
 
       const hash = horizonData.hash;
       setTxHash(hash);
+      analytics.trackTransactionSubmitted(req.id, hash);
 
       setStep("VERIFYING");
       setPayMsg("Backend independently verifying transaction hash on Stellar Testnet...");
@@ -228,15 +244,21 @@ export default function PaymentRequestPage({ params }: { params: Promise<{ reque
 
       if (!verifyRes.ok) {
         setStep("FAILED");
-        setWalletErr(verifyData.error || "Backend verification failed.");
+        const safeMsg = formatErrorMessage(verifyData.error || "Backend verification failed.");
+        setWalletErr(safeMsg);
+        analytics.trackTransactionFailed(req.id, safeMsg);
       } else {
         setConfirmedPaymentId(verifyData.payment.id);
         setStep("CONFIRMED");
         setReq({ ...req, status: "CONFIRMED" });
+        analytics.trackTransactionConfirmed(req.id, hash, parseFloat(req.amount));
       }
     } catch (err: any) {
       setStep("FAILED");
-      setWalletErr(err?.message || "Payment process encountered an error.");
+      const safeMsg = formatErrorMessage(err, "Payment process encountered an error.");
+      setWalletErr(safeMsg);
+      analytics.trackTransactionFailed(req.id, safeMsg);
+      monitoring.captureException(err, { context: "handlePay", requestId: req.id });
     }
   };
 
@@ -258,7 +280,7 @@ export default function PaymentRequestPage({ params }: { params: Promise<{ reque
         <div className="min-h-screen pt-32 pb-16 max-w-md mx-auto px-4 text-center">
           <AlertTriangle className="w-16 h-16 text-red-400 mx-auto mb-4" />
           <h1 className="text-2xl font-bold mb-2">Payment Request Not Found</h1>
-          <p className="text-[var(--color-muted)] text-sm mb-6">{error || "This link may be invalid or expired."}</p>
+          <p className="text-[var(--color-muted)] text-sm mb-6">{formatErrorMessage(error || "This link may be invalid or expired.")}</p>
           <Link href="/" className="btn-primary">Return Home</Link>
         </div>
         <Footer />
@@ -274,7 +296,7 @@ export default function PaymentRequestPage({ params }: { params: Promise<{ reque
         {/* Banner */}
         <div className="text-center mb-8">
           <div className="inline-flex items-center gap-2 testnet-badge mb-3">
-            <Zap className="w-3 h-3" />
+            <Zap className="w-3 h-3 text-yellow-400" />
             Stellar TESTNET Payment Request
           </div>
           <h1 className="text-3xl font-bold">{req.title}</h1>
@@ -362,7 +384,7 @@ export default function PaymentRequestPage({ params }: { params: Promise<{ reque
                   {walletErr && (
                     <div className="error-box">
                       <span>⚠</span>
-                      <span>{walletErr}</span>
+                      <span>{formatErrorMessage(walletErr)}</span>
                     </div>
                   )}
 
@@ -462,7 +484,7 @@ export default function PaymentRequestPage({ params }: { params: Promise<{ reque
                   {walletErr && (
                     <div className="error-box">
                       <span>⚠</span>
-                      <span>{walletErr}</span>
+                      <span>{formatErrorMessage(walletErr)}</span>
                     </div>
                   )}
 
@@ -533,10 +555,10 @@ export default function PaymentRequestPage({ params }: { params: Promise<{ reque
                   <AlertTriangle className="w-16 h-16 text-red-400 mx-auto" />
                   <h2 className="text-2xl font-bold text-red-400">Payment Failed</h2>
                   <p className="text-sm text-[var(--color-muted)] max-w-md mx-auto">
-                    {walletErr || "The payment transaction could not be completed."}
+                    {formatErrorMessage(walletErr || "The payment transaction could not be completed.")}
                   </p>
                   <button
-                    onClick={() => setStep("REVIEW")}
+                    onClick={() => { setStep("REVIEW"); setWalletErr(""); }}
                     className="btn-primary text-sm py-2 px-5 mx-auto"
                   >
                     Try Again

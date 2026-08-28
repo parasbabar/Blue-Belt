@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { GraduationCap, Mail, Lock, User, Globe, Eye, EyeOff, ArrowRight, Zap } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { formatErrorMessage } from "@/lib/utils";
 
 const COUNTRIES = [
   "Afghanistan","Albania","Algeria","Argentina","Australia","Austria","Bangladesh","Belgium","Brazil",
@@ -51,7 +52,7 @@ export default function RegisterPage() {
     });
     setLoading(false);
     if (result.error) {
-      setError(result.error);
+      setError(formatErrorMessage(result.error));
     } else {
       router.push("/dashboard");
     }
@@ -81,7 +82,7 @@ export default function RegisterPage() {
           </div>
 
           {error && (
-            <div className="error-box mb-4"><span>⚠</span><span>{error}</span></div>
+            <div className="error-box mb-4"><span>⚠</span><span>{formatErrorMessage(error)}</span></div>
           )}
 
           <form onSubmit={handleSubmit} className="space-y-4">

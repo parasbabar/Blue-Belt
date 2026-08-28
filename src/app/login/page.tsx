@@ -4,6 +4,7 @@ import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { GraduationCap, Mail, Lock, Eye, EyeOff, ArrowRight, Zap } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
+import { formatErrorMessage } from "@/lib/utils";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -21,7 +22,7 @@ export default function LoginPage() {
     const result = await login(email, password);
     setLoading(false);
     if (result.error) {
-      setError(result.error);
+      setError(formatErrorMessage(result.error));
     } else {
       router.push("/dashboard");
     }
@@ -58,7 +59,7 @@ export default function LoginPage() {
           {error && (
             <div className="error-box mb-4">
               <span>⚠</span>
-              <span>{error}</span>
+              <span>{formatErrorMessage(error)}</span>
             </div>
           )}
 

@@ -11,6 +11,7 @@ import {
   Check, Wallet, RefreshCw, GraduationCap, DollarSign, Send, Zap, LogOut,
 } from "lucide-react";
 import { shortenAddress, isValidStellarAddress } from "@/lib/stellar";
+import { formatErrorMessage } from "@/lib/utils";
 
 interface PaymentRequest {
   id: string;
@@ -121,7 +122,7 @@ export default function DashboardPage() {
 
       const data = await res.json();
       if (!res.ok) {
-        setCreateErr(data.error || "Failed to create payment request.");
+        setCreateErr(formatErrorMessage(data.error || "Failed to create payment request."));
       } else {
         // Save wallet if provided
         if (form.recipientAddress && form.recipientAddress !== user?.walletAddress) {
@@ -272,7 +273,7 @@ export default function DashboardPage() {
               {createErr && (
                 <div className="error-box mb-4">
                   <span>⚠</span>
-                  <span>{createErr}</span>
+                  <span>{formatErrorMessage(createErr)}</span>
                 </div>
               )}
 
