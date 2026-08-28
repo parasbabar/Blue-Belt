@@ -161,7 +161,11 @@ export default function DashboardPage() {
 
   const confirmedCount = requests.filter((r) => r.status === "CONFIRMED").length;
   const pendingCount = requests.filter((r) => r.status === "CREATED" || r.status === "PENDING" || r.status === "SUBMITTED").length;
+  const failedCount = requests.filter((r) => r.status === "FAILED").length;
   const totalAmount = requests.reduce((sum, r) => sum + (r.status === "CONFIRMED" ? parseFloat(r.amount) : 0), 0);
+
+  const hour = new Date().getHours();
+  const timeGreeting = hour < 12 ? "Good morning" : hour < 18 ? "Good afternoon" : "Good evening";
 
   return (
     <>
@@ -176,7 +180,7 @@ export default function DashboardPage() {
               <span className="text-xs text-[var(--color-muted)] capitalize">• {user.role.toLowerCase()} Account</span>
             </div>
             <h1 className="text-2xl sm:text-3xl font-bold">
-              Welcome back, <span className="gradient-text">{user.name}</span>
+              {timeGreeting}, <span className="gradient-text">{user.name}</span> 👋
             </h1>
             <p className="text-sm text-[var(--color-muted)] mt-1">
               {user.country} • {user.email}
@@ -201,7 +205,7 @@ export default function DashboardPage() {
         </div>
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
           <div className="card">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold text-[var(--color-muted)] uppercase">Total Requests</span>
@@ -217,7 +221,7 @@ export default function DashboardPage() {
               <Clock className="w-4 h-4 text-yellow-400" />
             </div>
             <div className="text-2xl font-bold text-yellow-400">{pendingCount}</div>
-            <div className="text-xs text-[var(--color-muted)] mt-1">Awaiting sender payment</div>
+            <div className="text-xs text-[var(--color-muted)] mt-1">Awaiting payment</div>
           </div>
 
           <div className="card">
@@ -226,7 +230,16 @@ export default function DashboardPage() {
               <CheckCircle className="w-4 h-4 text-green-400" />
             </div>
             <div className="text-2xl font-bold text-green-400">{confirmedCount}</div>
-            <div className="text-xs text-[var(--color-muted)] mt-1">On-chain verified</div>
+            <div className="text-xs text-[var(--color-muted)] mt-1">On-chain confirmed</div>
+          </div>
+
+          <div className="card">
+            <div className="flex items-center justify-between mb-2">
+              <span className="text-xs font-semibold text-[var(--color-muted)] uppercase">Failed</span>
+              <AlertTriangle className="w-4 h-4 text-red-400" />
+            </div>
+            <div className="text-2xl font-bold text-red-400">{failedCount}</div>
+            <div className="text-xs text-[var(--color-muted)] mt-1">Rejected transactions</div>
           </div>
 
           <div className="card">

@@ -25,19 +25,17 @@ export default function HomePage() {
 
         <div className="relative max-w-5xl mx-auto px-4 sm:px-6 text-center animate-fade-in-up">
           <div className="inline-flex items-center gap-2 testnet-badge mb-6">
-            <Zap className="w-3 h-3" />
-            Live on Stellar TESTNET
+            <Zap className="w-3 h-3 text-yellow-400" />
+            <span>Powered by Stellar • TESTNET</span>
           </div>
 
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-bold mb-6 leading-tight tracking-tight">
-            Student Payments,{" "}
-            <span className="gradient-text">Reimagined</span>
-            <br />on Stellar
+            International student payments,{" "}
+            <span className="gradient-text">simplified.</span>
           </h1>
 
           <p className="text-lg sm:text-xl text-[var(--color-muted)] max-w-2xl mx-auto mb-10 leading-relaxed">
-            ScholarPay enables fast, transparent, and low-cost international student payments —
-            tuition, rent, living expenses — powered by Stellar blockchain and Soroban smart contracts.
+            ScholarPay connects international students and sponsors for instant, transparent, and low-cost tuition and living expense payments settled directly on the Stellar blockchain.
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center items-center mb-16">
@@ -45,8 +43,8 @@ export default function HomePage() {
               Create Payment Request
               <ArrowRight className="w-4 h-4" />
             </Link>
-            <Link href="/faq" className="btn-secondary text-base px-8 py-3 w-full sm:w-auto justify-center">
-              Explore FAQ
+            <Link href="#how-it-works" className="btn-secondary text-base px-8 py-3 w-full sm:w-auto justify-center">
+              See How It Works
             </Link>
           </div>
 

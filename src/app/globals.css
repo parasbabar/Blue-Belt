@@ -20,7 +20,7 @@
   }
 
   html {
-    scroll-behavior: smooth;
+    /* Smooth scroll managed via CSS utility class .smooth-scroll */
   }
 
   body {

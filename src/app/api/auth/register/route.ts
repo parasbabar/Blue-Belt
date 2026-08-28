@@ -49,9 +49,10 @@ export async function POST(request: NextRequest) {
 
     await setSessionCookie(token);
 
-    return NextResponse.json({
-      user: { id: user.id, email: user.email, name: user.name, role: user.role },
-    });
+    return NextResponse.json(
+      { user: { id: user.id, email: user.email, name: user.name, role: user.role } },
+      { status: 201 }
+    );
   } catch (err: any) {
     if (err?.name === "ZodError") {
       return NextResponse.json({ error: err.errors[0]?.message || "Invalid input." }, { status: 400 });

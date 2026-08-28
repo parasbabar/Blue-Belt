@@ -1,12 +1,12 @@
-// This is your Prisma schema file,
-// learn more about it in the docs: https://pris.ly/d/prisma-schema
+// PostgreSQL Schema for Production Cloud Deployments (Neon / Supabase / Vercel Postgres)
 
 generator client {
   provider = "prisma-client-js"
 }
 
 datasource db {
-  provider = "sqlite"
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
 }
 
 enum Role {
@@ -29,7 +29,7 @@ model User {
   email           String           @unique
   passwordHash    String
   name            String
-  role            String           @default("STUDENT") // STUDENT or SENDER
+  role            Role             @default(STUDENT)
   country         String
   walletAddress   String?          // Stellar wallet address
   createdRequests PaymentRequest[] @relation("StudentRequests")
@@ -42,20 +42,20 @@ model User {
 }
 
 model PaymentRequest {
-  id               String      @id @default(uuid())
+  id               String        @id @default(uuid())
   title            String
-  purpose          String      // Tuition, Accommodation, Rent, Living Expenses, Other
-  amount           Decimal     // Amount in Decimal for precision
-  asset            String      // Asset code/ID, e.g. XLM
-  recipientAddress String      // Recipient Stellar wallet address
+  purpose          String        // Tuition, Accommodation, Rent, Living Expenses, Other
+  amount           Decimal       // Amount in Decimal for precision
+  asset            String        // Asset code/ID, e.g. XLM
+  recipientAddress String        // Recipient Stellar wallet address
   deadline         DateTime
-  status           String      @default("CREATED") // CREATED, PENDING, SUBMITTED, CONFIRMED, FAILED, EXPIRED, CANCELLED
+  status           PaymentStatus @default(CREATED)
   description      String?
   studentId        String
-  student          User        @relation("StudentRequests", fields: [studentId], references: [id], onDelete: Cascade)
+  student          User          @relation("StudentRequests", fields: [studentId], references: [id], onDelete: Cascade)
   payments         Payment[]
-  createdAt        DateTime    @default(now())
-  updatedAt        DateTime    @updatedAt
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
 
   @@index([studentId])
   @@index([status])
@@ -71,7 +71,7 @@ model Payment {
   senderWallet     String         // Wallet address used to pay
   amount           Decimal
   transactionHash  String         @unique // Stellar tx hash must be unique
-  status           String         @default("SUBMITTED") // SUBMITTED, CONFIRMED, FAILED
+  status           PaymentStatus  @default(SUBMITTED)
   feedbacks        Feedback[]
   createdAt        DateTime       @default(now())
   updatedAt        DateTime       @updatedAt

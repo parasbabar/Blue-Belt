@@ -1,5 +1,5 @@
 import { PrismaClient } from "@prisma/client";
-import { PrismaPg } from "@prisma/adapter-pg";
+import { PrismaBetterSqlite3 } from "@prisma/adapter-better-sqlite3";
 
 declare global {
   // eslint-disable-next-line no-var
@@ -7,10 +7,9 @@ declare global {
 }
 
 function createPrismaClient(): PrismaClient {
-  const adapter = new PrismaPg({
-    connectionString: process.env.DATABASE_URL,
-  });
-  return new PrismaClient({ adapter } as any);
+  const url = process.env.DATABASE_URL || "file:./dev.db";
+  const adapter = new PrismaBetterSqlite3({ url });
+  return new PrismaClient({ adapter });
 }
 
 const prisma = global.prisma ?? createPrismaClient();
