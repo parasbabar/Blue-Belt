@@ -11,15 +11,16 @@ import {
   xdr,
 } from "@stellar/stellar-sdk";
 import { rpc as SorobanRpc } from "@stellar/stellar-sdk";
+import { env } from "./env";
 
-export const STELLAR_NETWORK = Networks.TESTNET;
-export const STELLAR_NETWORK_PASSPHRASE = Networks.TESTNET; // "Test SDF Network ; September 2015"
-export const HORIZON_URL = process.env.STELLAR_HORIZON_URL || "https://horizon-testnet.stellar.org";
-export const SOROBAN_RPC_URL = process.env.STELLAR_RPC_URL || "https://soroban-testnet.stellar.org";
+export const STELLAR_NETWORK = env.NEXT_PUBLIC_STELLAR_NETWORK;
+export const STELLAR_NETWORK_PASSPHRASE = env.NEXT_PUBLIC_STELLAR_NETWORK_PASSPHRASE; // "Test SDF Network ; September 2015"
+export const HORIZON_URL = env.NEXT_PUBLIC_STELLAR_HORIZON_URL;
+export const SOROBAN_RPC_URL = env.NEXT_PUBLIC_STELLAR_RPC_URL;
 export const EXPLORER_TX_URL = "https://stellar.expert/explorer/testnet/tx";
 export const FRIENDBOT_URL = "https://friendbot.stellar.org";
 
-export const CONTRACT_ID = process.env.NEXT_PUBLIC_SOROBAN_CONTRACT_ID || "";
+export const CONTRACT_ID = env.NEXT_PUBLIC_SOROBAN_CONTRACT_ID;
 
 export const horizonServer = new Horizon.Server(HORIZON_URL);
 export const rpcServer = new SorobanRpc.Server(SOROBAN_RPC_URL);
