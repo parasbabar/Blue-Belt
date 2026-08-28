@@ -39,7 +39,7 @@ export function validateEnvironment(): { valid: boolean; warnings: string[] } {
     }
 
     if (!process.env.JWT_SECRET || process.env.JWT_SECRET.includes("scholarpay-dev-secret")) {
-      warnings.push("PRODUCTION CONFIG WARNING: JWT_SECRET must be set to a secure, random secret.");
+      throw new Error("CRITICAL SECURITY ERROR: JWT_SECRET environment variable must be set to a secure, 32+ character secret in production.");
     }
   }
 
