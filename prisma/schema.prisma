@@ -1,0 +1,105 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+enum Role {
+  STUDENT
+  SENDER
+}
+
+enum PaymentStatus {
+  CREATED
+  PENDING
+  SUBMITTED
+  CONFIRMED
+  FAILED
+  EXPIRED
+  CANCELLED
+}
+
+model User {
+  id              String           @id @default(uuid())
+  email           String           @unique
+  passwordHash    String
+  name            String
+  role            Role             @default(STUDENT)
+  country         String
+  walletAddress   String?          // Stellar wallet address (optional)
+  createdRequests PaymentRequest[] @relation("StudentRequests")
+  paymentsMade    Payment[]        @relation("SenderPayments")
+  notifications   Notification[]
+  createdAt       DateTime         @default(now())
+  updatedAt       DateTime         @updatedAt
+
+  @@index([role])
+}
+
+model PaymentRequest {
+  id               String        @id @default(uuid())
+  title            String
+  purpose          String        // Tuition, Accommodation, Rent, Living Expenses, Other
+  amount           Decimal       // Amount in Decimal for precision
+  asset            String        // Asset code/ID, e.g. XLM or Native wrapper address
+  recipientAddress String        // Recipient Stellar wallet address
+  deadline         DateTime
+  status           PaymentStatus @default(CREATED)
+  description      String?
+  studentId        String
+  student          User          @relation("StudentRequests", fields: [studentId], references: [id], onDelete: Cascade)
+  payments         Payment[]
+  createdAt        DateTime      @default(now())
+  updatedAt        DateTime      @updatedAt
+
+  @@index([studentId])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Payment {
+  id               String         @id @default(uuid())
+  paymentRequestId String
+  paymentRequest   PaymentRequest @relation(fields: [paymentRequestId], references: [id], onDelete: Cascade)
+  senderId         String?
+  sender           User?          @relation("SenderPayments", fields: [senderId], references: [id], onDelete: SetNull)
+  senderWallet     String         // Wallet address used to pay
+  amount           Decimal
+  transactionHash  String         @unique // Stellar tx hash must be unique
+  status           PaymentStatus  @default(SUBMITTED)
+  feedbacks        Feedback[]
+  createdAt        DateTime       @default(now())
+  updatedAt        DateTime       @updatedAt
+
+  @@index([paymentRequestId])
+  @@index([senderId])
+  @@index([transactionHash])
+  @@index([status])
+  @@index([createdAt])
+}
+
+model Feedback {
+  id        String   @id @default(uuid())
+  paymentId String?
+  payment   Payment? @relation(fields: [paymentId], references: [id], onDelete: SetNull)
+  rating    Int      // 1 to 5
+  comment   String?
+  createdAt DateTime @default(now())
+}
+
+model Notification {
+  id        String   @id @default(uuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  title     String
+  message   String
+  read      Boolean  @default(false)
+  createdAt DateTime @default(now())
+
+  @@index([userId])
+}
