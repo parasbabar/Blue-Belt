@@ -1,6 +1,6 @@
 import "dotenv/config";
 import { Horizon } from "@stellar/stellar-sdk";
-import { CONTRACT_ID, verifyTransaction } from "../src/lib/stellar";
+import { CONTRACT_ID, verifyTransaction, STELLAR_NETWORK_PASSPHRASE } from "../src/lib/stellar";
 
 async function runStellarOnChainTests() {
   console.log("==========================================");
@@ -21,13 +21,24 @@ async function runStellarOnChainTests() {
   }
 
   try {
-    // 1. Verify Contract Address Format
+    // 1. Verify Network Passphrase
+    assert(
+      STELLAR_NETWORK_PASSPHRASE === "Test SDF Network ; September 2015",
+      `Network Passphrase matches official Testnet: "${STELLAR_NETWORK_PASSPHRASE}"`
+    );
+
+    assert(
+      (STELLAR_NETWORK_PASSPHRASE as string) !== "Test SDF Network ; October 2013",
+      "Network Passphrase rejected obsolete 'October 2013' passphrase"
+    );
+
+    // 2. Verify Contract Address Format
     assert(
       CONTRACT_ID === "CAQWR6A4JQIPR5IVPIF47KB2TJQJYFC6IDXXUZ2DRMOFFE4PDONQ7RCQ",
       `Soroban contract address matches deployed address (${CONTRACT_ID})`
     );
 
-    // 2. Query Live Horizon Testnet RPC
+    // 3. Query Live Horizon Testnet RPC
     const server = new Horizon.Server("https://horizon-testnet.stellar.org");
     const ledgers = await server.ledgers().limit(1).order("desc").call();
 
@@ -36,7 +47,7 @@ async function runStellarOnChainTests() {
       `Successfully queried live Stellar Testnet ledger (Latest sequence: ${ledgers.records[0]?.sequence})`
     );
 
-    // 3. Test Invalid Transaction Verification Handling
+    // 4. Test Invalid Transaction Verification Handling
     const invalidVerification = await verifyTransaction(
       "0000000000000000000000000000000000000000000000000000000000000000"
     );

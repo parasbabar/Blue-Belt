@@ -13,8 +13,9 @@ import {
 import { rpc as SorobanRpc } from "@stellar/stellar-sdk";
 
 export const STELLAR_NETWORK = Networks.TESTNET;
-export const HORIZON_URL = "https://horizon-testnet.stellar.org";
-export const SOROBAN_RPC_URL = "https://soroban-testnet.stellar.org";
+export const STELLAR_NETWORK_PASSPHRASE = Networks.TESTNET; // "Test SDF Network ; September 2015"
+export const HORIZON_URL = process.env.STELLAR_HORIZON_URL || "https://horizon-testnet.stellar.org";
+export const SOROBAN_RPC_URL = process.env.STELLAR_RPC_URL || "https://soroban-testnet.stellar.org";
 export const EXPLORER_TX_URL = "https://stellar.expert/explorer/testnet/tx";
 export const FRIENDBOT_URL = "https://friendbot.stellar.org";
 

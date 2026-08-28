@@ -8,7 +8,7 @@ import {
   GraduationCap, Wallet, CheckCircle, Clock, AlertTriangle, ExternalLink,
   ArrowRight, Shield, Zap, RefreshCw, Copy, Check, DollarSign,
 } from "lucide-react";
-import { shortenAddress, isValidStellarAddress, prepareXLMPaymentTransaction, CONTRACT_ID } from "@/lib/stellar";
+import { shortenAddress, isValidStellarAddress, prepareXLMPaymentTransaction, CONTRACT_ID, STELLAR_NETWORK_PASSPHRASE } from "@/lib/stellar";
 import { isConnected, requestAccess, signTransaction } from "@stellar/freighter-api";
 import { formatErrorMessage } from "@/lib/utils";
 import { analytics } from "@/lib/analytics";
@@ -178,7 +178,7 @@ export default function PaymentRequestPage({ params }: { params: Promise<{ reque
       // 2. Sign transaction via user's wallet
       if (walletType === "freighter") {
         const signResult = await signTransaction(prep.xdr, {
-          networkPassphrase: "Test SDF Network ; October 2013",
+          networkPassphrase: STELLAR_NETWORK_PASSPHRASE,
         });
         if (signResult.error) {
           setStep("FAILED");
