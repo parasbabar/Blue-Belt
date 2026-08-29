@@ -5,6 +5,7 @@ import Link from "next/link";
 import { GraduationCap, Mail, Lock, User, Globe, Eye, EyeOff, ArrowRight, Zap } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatErrorMessage } from "@/lib/utils";
+import { analytics } from "@/lib/analytics";
 
 const COUNTRIES = [
   "Afghanistan","Albania","Algeria","Argentina","Australia","Austria","Bangladesh","Belgium","Brazil",
@@ -54,6 +55,9 @@ export default function RegisterPage() {
     if (result.error) {
       setError(formatErrorMessage(result.error));
     } else {
+      if (result.user) {
+        analytics.trackUserRegistered(result.user.id, result.user.role, form.country);
+      }
       router.push("/dashboard");
     }
   };

@@ -15,8 +15,8 @@ interface User {
 interface AuthContext {
   user: User | null;
   loading: boolean;
-  login: (email: string, password: string) => Promise<{ error?: string }>;
-  register: (data: RegisterData) => Promise<{ error?: string }>;
+  login: (email: string, password: string) => Promise<{ error?: string; user?: User }>;
+  register: (data: RegisterData) => Promise<{ error?: string; user?: User }>;
   logout: () => Promise<void>;
   refreshUser: () => Promise<void>;
   updateWallet: (address: string) => Promise<void>;
@@ -64,7 +64,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const data = await res.json();
     if (!res.ok) return { error: data.error };
     setUser(data.user);
-    return {};
+    return { user: data.user };
   };
 
   const register = async (regData: RegisterData) => {
@@ -76,7 +76,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const data = await res.json();
     if (!res.ok) return { error: data.error };
     setUser(data.user);
-    return {};
+    return { user: data.user };
   };
 
   const logout = async () => {

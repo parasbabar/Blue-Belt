@@ -12,6 +12,7 @@ import {
 } from "lucide-react";
 import { shortenAddress, isValidStellarAddress } from "@/lib/stellar";
 import { formatErrorMessage } from "@/lib/utils";
+import { analytics } from "@/lib/analytics";
 
 interface PaymentRequest {
   id: string;
@@ -124,6 +125,9 @@ export default function DashboardPage() {
       if (!res.ok) {
         setCreateErr(formatErrorMessage(data.error || "Failed to create payment request."));
       } else {
+        if (data.request) {
+          analytics.trackPaymentRequestCreated(data.request.id, numAmount, form.asset, form.purpose);
+        }
         // Save wallet if provided
         if (form.recipientAddress && form.recipientAddress !== user?.walletAddress) {
           updateWallet(form.recipientAddress);

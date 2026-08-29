@@ -5,6 +5,7 @@ import Link from "next/link";
 import { GraduationCap, Mail, Lock, Eye, EyeOff, ArrowRight, Zap } from "lucide-react";
 import { useAuth } from "@/contexts/AuthContext";
 import { formatErrorMessage } from "@/lib/utils";
+import { analytics } from "@/lib/analytics";
 
 export default function LoginPage() {
   const [email, setEmail] = useState("");
@@ -24,6 +25,9 @@ export default function LoginPage() {
     if (result.error) {
       setError(formatErrorMessage(result.error));
     } else {
+      if (result.user) {
+        analytics.trackUserLogin(result.user.id, result.user.role);
+      }
       router.push("/dashboard");
     }
   };

@@ -9,6 +9,7 @@ import {
   FileText, Download, Share2,
 } from "lucide-react";
 import { shortenAddress, CONTRACT_ID } from "@/lib/stellar";
+import { analytics } from "@/lib/analytics";
 
 interface PaymentReceiptData {
   id: string;
@@ -51,6 +52,9 @@ export default function ReceiptPage({ params }: { params: Promise<{ paymentId: s
           setError(data.error || "Receipt not found.");
         } else {
           setPayment(data.payment);
+          if (data.payment) {
+            analytics.trackReceiptViewed(data.payment.id, data.payment.transactionHash);
+          }
         }
       } catch {
         setError("Failed to load receipt.");
@@ -76,6 +80,7 @@ export default function ReceiptPage({ params }: { params: Promise<{ paymentId: s
       });
       if (res.ok) {
         setSubmittedFeedback(true);
+        analytics.trackFeedbackSubmitted(paymentId, rating);
       }
     } catch {
       // Ignore
