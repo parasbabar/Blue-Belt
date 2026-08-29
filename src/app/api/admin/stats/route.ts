@@ -19,7 +19,7 @@ export async function GET(request: NextRequest) {
   const confirmedPayments = await prisma.paymentRequest.count({ where: { status: "CONFIRMED" } });
   const failedPayments = await prisma.paymentRequest.count({ where: { status: "FAILED" } });
   const avgRating = feedback.length > 0
-    ? feedback.reduce((s, f) => s + f.rating, 0) / feedback.length
+    ? feedback.reduce((s: number, f: { rating: number }) => s + f.rating, 0) / feedback.length
     : null;
 
   return NextResponse.json({

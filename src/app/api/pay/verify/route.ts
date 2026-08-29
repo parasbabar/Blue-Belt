@@ -139,9 +139,9 @@ export async function POST(request: NextRequest) {
         asset: verification.asset,
       },
     });
-  } catch (err: any) {
-    if (err?.name === "ZodError") {
-      return NextResponse.json({ error: err.errors[0]?.message || "Invalid input." }, { status: 400 });
+  } catch (err: unknown) {
+    if (err instanceof z.ZodError) {
+      return NextResponse.json({ error: err.issues[0]?.message || "Invalid input." }, { status: 400 });
     }
     console.error("[verify-payment]", err);
     return NextResponse.json({ error: "Payment verification failed. Please try again." }, { status: 500 });

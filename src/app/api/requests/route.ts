@@ -59,9 +59,9 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ request: paymentRequest }, { status: 201 });
-  } catch (err: any) {
-    if (err?.name === "ZodError") {
-      return NextResponse.json({ error: err.errors[0]?.message || "Invalid input." }, { status: 400 });
+  } catch (err: unknown) {
+    if (err instanceof z.ZodError) {
+      return NextResponse.json({ error: err.issues[0]?.message || "Invalid input." }, { status: 400 });
     }
     console.error("[create-request]", err);
     return NextResponse.json({ error: "Failed to create payment request." }, { status: 500 });

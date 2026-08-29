@@ -22,9 +22,9 @@ export async function POST(request: NextRequest) {
     });
 
     return NextResponse.json({ feedback }, { status: 201 });
-  } catch (err: any) {
-    if (err?.name === "ZodError") {
-      return NextResponse.json({ error: err.errors[0]?.message || "Invalid input." }, { status: 400 });
+  } catch (err: unknown) {
+    if (err instanceof z.ZodError) {
+      return NextResponse.json({ error: err.issues[0]?.message || "Invalid input." }, { status: 400 });
     }
     return NextResponse.json({ error: "Failed to submit feedback." }, { status: 500 });
   }
@@ -38,7 +38,7 @@ export async function GET() {
 
   const total = await prisma.feedback.count();
   const avgRating = feedbacks.length > 0
-    ? feedbacks.reduce((sum, f) => sum + f.rating, 0) / feedbacks.length
+    ? feedbacks.reduce((sum: number, f: { rating: number }) => sum + f.rating, 0) / feedbacks.length
     : 0;
 
   return NextResponse.json({ feedbacks, total, averageRating: avgRating });

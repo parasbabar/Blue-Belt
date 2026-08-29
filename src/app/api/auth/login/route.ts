@@ -37,9 +37,9 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({
       user: { id: user.id, email: user.email, name: user.name, role: user.role },
     });
-  } catch (err: any) {
-    if (err?.name === "ZodError") {
-      return NextResponse.json({ error: err.errors[0]?.message || "Invalid input." }, { status: 400 });
+  } catch (err: unknown) {
+    if (err instanceof z.ZodError) {
+      return NextResponse.json({ error: err.issues[0]?.message || "Invalid input." }, { status: 400 });
     }
     console.error("[login]", err);
     return NextResponse.json({ error: "Login failed. Please try again." }, { status: 500 });
