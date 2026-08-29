@@ -2,402 +2,332 @@
 
 > **Stellar-powered cross-border student payment platform built on Soroban smart contracts.**
 
-ScholarPay eliminates expensive international bank transfers and opaque SWIFT delays for students studying abroad. It provides a transparent, instant, verifiable payment flow — from a student creating a request to a sender paying with a Stellar wallet — all recorded on-chain.
+ScholarPay is a production-grade decentralized payment platform designed to solve international tuition and living expense remittance challenges for students studying abroad. By leveraging the **Stellar Network** and **Soroban Smart Contracts**, ScholarPay replaces slow, high-fee SWIFT bank transfers with near-instant, low-cost, and transparent on-chain transactions.
 
 ---
 
-## Overview
+## 🔗 Live Links
 
-Students in developing countries face a common problem: receiving educational funds from family abroad is slow (days), expensive (5–10% in fees), and opaque. ScholarPay replaces traditional remittance with a Stellar Testnet payment flow:
-
-- Students create a **Payment Request** linked to their Stellar wallet address
-- A **shareable payment link** is generated for family/senders abroad
-- Senders connect a Stellar wallet (Freighter or Albedo), sign the transaction, and pay in XLM
-- The backend independently verifies the transaction hash on Horizon (on-chain)
-- A **receipt** is issued with a Stellar Explorer link and feedback form
-
----
-
-## Key Features
-
-- **Student Dashboard** — Create and manage payment requests with title, purpose, amount, deadline
-- **Public Payment Page** — Shareable `/pay/[requestId]` link for senders; no login required
-- **Freighter & Albedo Wallet Integration** — One-click transaction signing in-browser
-- **Server-side Stellar Transaction Verification** — Backend validates every tx hash on Horizon before confirming
-- **Soroban Smart Contract** — Deployed on Stellar Testnet for idempotent on-chain payment recording
-- **Receipt & Feedback** — Branded receipt with Stellar Explorer link and 1–5 star rating
-- **Admin Dashboard** — Platform-wide user, payment, and feedback metrics
-- **PostHog Analytics** — Full user funnel tracking from registration through payment
-- **Sentry Error Monitoring** — Real-time exception capture and alerting
-- **Neon PostgreSQL** — Production cloud database; SQLite for local development
+- **Live Demo:** 
+- **Demo Video:** 
+- **User Feedback Form:** 
+- **User Feedback Sheet:** 
+- **GitHub Repository:** [https://github.com/parasbabar/scholarpay](https://github.com/parasbabar/scholarpay)
+- **Stellar Testnet Contract:** [`CAQWR6A4JQIPR5IVPIF47KB2TJQJYFC6IDXXUZ2DRMOFFE4PDONQ7RCQ`](https://stellar.expert/explorer/testnet/contract/CAQWR6A4JQIPR5IVPIF47KB2TJQJYFC6IDXXUZ2DRMOFFE4PDONQ7RCQ)
 
 ---
 
-## How It Works / User Flow
+## 🚀 Overview
 
+International students from developing economies often face severe financial hurdles when receiving funds from sponsors or family abroad:
+- **High Friction & Costs**: Traditional SWIFT wire transfers incur 5% to 10% in intermediary banking and currency conversion fees.
+- **Opaque Delays**: Settlements routinely take 3 to 7 business days with minimal tracking.
+- **Lack of Verification**: Educational institutions and students struggle to verify payment status in real-time.
+
+ScholarPay eliminates these inefficiencies:
+- **Instant Settlement & Sub-Cent Fees**: Transfers execute on the Stellar Testnet in seconds for a fraction of a cent in network fees (XLM).
+- **Public Shareable Payment Links**: Students generate dedicated payment request pages (`/pay/[requestId]`) that enable sponsors to pay without creating an account.
+- **Idempotent Smart Contract Recording**: Soroban smart contracts log payment identifiers directly on-chain to guarantee replay protection and auditability.
+- **Server-Side Verification**: ScholarPay's API independently queries the Stellar Horizon RPC to validate transaction hashes before confirming status.
+
+---
+
+## ✨ Features
+
+- **Student Request Management** — Create, track, and manage payment requests detailing purpose (Tuition, Rent, Living Expenses), XLM amount, asset type, and deadline.
+- **Public Shareable Payment Pages** — Dedicated, public `/pay/[requestId]` pages allowing external family, sponsors, or donors to fulfill payments directly.
+- **Dual Wallet Support** — Native browser integration for **Freighter** (extension) and **Albedo** (web popup) wallets for seamless transaction signing.
+- **Server-Side Transaction Verification** — Backend validation endpoint (`POST /api/pay/verify`) checks on-chain Horizon records before marking payments as confirmed.
+- **Soroban Smart Contract** — On-chain Rust contract deployed on Stellar Testnet for payment execution and status lookup (`is_paid`).
+- **Digital Transaction Receipts** — Official receipts generated with direct links to the Stellar Expert Testnet Explorer.
+- **In-App & Google Form Feedback** — Integrated 1–5 star rating system on receipt pages and external validation form tracking.
+- **Admin Management Portal** — Comprehensive dashboard (/admin) displaying platform metrics, total users, payment volume, and feedback.
+- **PostHog Funnel Analytics** — End-to-end event tracking from registration through wallet connection, payment signing, and receipt viewing.
+- **Sentry Error Tracking** — Client and server error monitoring with sanitized context logging and automated alerting.
+
+---
+
+## 🧑‍💻 How ScholarPay Works
+
+1. **Account Registration**: Students and senders register via `/register` with role-based profiles (Student or Sender).
+2. **Create Payment Request**: The student creates a request via `/dashboard` specifying title, category, XLM amount, deadline, and recipient Stellar address.
+3. **Share Payment Link**: ScholarPay generates a unique public URL (`/pay/[requestId]`).
+4. **Access Payment Page**: Senders or family members open the public payment link without needing to log in.
+5. **Connect Stellar Wallet**: Senders connect their preferred wallet via Freighter or Albedo.
+6. **Sign & Broadcast Transaction**: The wallet prompts the user to sign the XLM payment transaction, which is submitted to the Stellar network.
+7. **Server Verification**: The client posts the resulting transaction hash to `/api/pay/verify`, where ScholarPay queries Horizon RPC to verify source, destination, amount, and asset code on-chain.
+8. **Receipt Generation**: Once verified, the database updates status to `CONFIRMED` and issues a digital receipt (`/receipt/[paymentId]`).
+9. **Feedback Submission**: Users can rate their payment experience (1 to 5 stars) and submit qualitative feedback.
+
+---
+
+## 🏗️ Architecture
+
+ScholarPay is architected as a full-stack Next.js App Router application backed by a dynamic database layer, external blockchain RPC nodes, and telemetry pipelines.
+
+```mermaid
+flowchart TD
+    subgraph Client["Frontend Layer (Next.js 16 + React 19)"]
+        UI["Student Dashboard & Public Pay Page"]
+        AuthContext["Auth Context (JWT Cookie Session)"]
+        Wallets["Freighter & Albedo Web SDKs"]
+    end
+
+    subgraph Backend["Backend API Layer (Next.js App Router)"]
+        AuthAPI["/api/auth/*"]
+        ReqAPI["/api/requests/*"]
+        PayAPI["/api/pay/verify"]
+        AdminAPI["/api/admin/stats"]
+    end
+
+    subgraph Database["Database Layer (Prisma ORM 7)"]
+        Adapter["Dynamic Driver Adapter (PrismaPg / BetterSqlite3)"]
+        DB[("Neon PostgreSQL (Prod) / SQLite (Dev)")]
+    end
+
+    subgraph Blockchain["Stellar Network (Testnet)"]
+        Horizon["Stellar Horizon RPC"]
+        Soroban["Soroban Smart Contract (Rust)"]
+    end
+
+    subgraph Telemetry["Analytics & Monitoring"]
+        PostHog["PostHog Event Engine"]
+        Sentry["Sentry Error Monitoring"]
+    end
+
+    UI --> AuthContext
+    UI --> Wallets
+    Wallets -->|Broadcast Tx| Horizon
+    UI -->|HTTP Requests| Backend
+    Backend --> Adapter
+    Adapter --> DB
+    PayAPI -->|Verify Tx Hash| Horizon
+    Horizon -->|Execute & State Check| Soroban
+    Backend -->|Track Funnel| PostHog
+    Backend -->|Report Errors| Sentry
 ```
-[Student] Register → Create Payment Request → Share Link
-                                                    ↓
-                               [Sender] Open Link → Connect Wallet (Freighter/Albedo)
-                                                    ↓
-                               Sign & Submit XLM Transaction on Stellar Testnet
-                                                    ↓
-                               [Backend] Verify tx hash on Horizon → Update DB status
-                                                    ↓
-                               [Student + Sender] View Receipt → Submit Feedback
-```
-
-Detailed flow: [`docs/USER_FLOW.md`](./docs/USER_FLOW.md)
 
 ---
 
-## Technology Stack
+## 🛠️ Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Framework | Next.js 16.3.3 (App Router, Turbopack) |
-| Language | TypeScript 5 |
-| Frontend | React 19, Vanilla CSS, Tailwind CSS 4 |
-| Database | Prisma ORM 7 + Neon PostgreSQL (prod) / SQLite (dev) |
-| Auth | JWT via `jose`, HttpOnly cookies |
-| Stellar SDK | `@stellar/stellar-sdk` 17, `@stellar/freighter-api` 6 |
-| Albedo | `@albedo-link/intent` |
-| Smart Contract | Rust + `soroban-sdk`, deployed on Stellar Testnet |
-| Analytics | PostHog (`posthog-js`) |
-| Error Monitoring | Sentry (`@sentry/nextjs`) |
-| Validation | Zod |
-| Deployment | Vercel (production), Neon (database) |
-
----
-
-## Architecture
-
-### Frontend
-- Next.js App Router with React 19 and TypeScript
-- Page routes: `/` (landing), `/register`, `/login`, `/dashboard`, `/pay/[requestId]`, `/receipt/[paymentId]`, `/admin`, `/faq`
-- `AuthContext` provides JWT session state across the app
-- Responsive dark glassmorphic design system
-
-### Backend / API Routes
-
-| Endpoint | Purpose |
-|---|---|
-| `POST /api/auth/register` | User registration with bcrypt password hash |
-| `POST /api/auth/login` | JWT session issue |
-| `GET /api/auth/me` | Session validation |
-| `POST /api/requests` | Create payment request |
-| `GET /api/requests/[requestId]` | Fetch payment request details |
-| `POST /api/pay/verify` | Verify Stellar tx on Horizon + confirm payment |
-| `GET /api/payments/[paymentId]` | Payment/receipt lookup |
-| `POST /api/feedback` | Submit feedback rating |
-| `GET /api/notifications` | User notifications |
-| `GET /api/admin/stats` | Platform admin metrics |
-| `GET /api/monitoring/test` | Sentry health-check endpoint |
-
-### Database (Prisma)
-
-Models: `User`, `PaymentRequest`, `Payment`, `Feedback`, `Notification`
-
-Driver adapters auto-select at runtime:
-- **PostgreSQL (Neon)**: When `DATABASE_URL` starts with `postgres://`
-- **SQLite**: When `DATABASE_URL` starts with `file:`
-
-Schema: [`prisma/schema.prisma`](./prisma/schema.prisma)
-
-### Stellar Integration
-- **Horizon**: Account lookup, transaction verification, ledger queries
-- **Soroban RPC**: Smart contract interaction
-- **Freighter**: Browser extension wallet — `getPublicKey()`, `signTransaction()`
-- **Albedo**: Web popup wallet — no extension required
-- Utility functions: [`src/lib/stellar.ts`](./src/lib/stellar.ts)
+| Category | Technology | Description |
+|---|---|---|
+| **Framework** | Next.js 16.3.3 | App Router, Server Actions, Turbopack |
+| **Language** | TypeScript 5 | Strict type safety across client and server |
+| **Frontend UI** | React 19, Tailwind CSS 4 | Custom dark glassmorphic design system |
+| **Database** | Prisma ORM 7 | PostgreSQL (Neon Cloud) / SQLite (Local Dev) |
+| **Authentication** | JWT (`jose`), `bcryptjs` | HttpOnly, Secure, SameSite=Lax cookie management |
+| **Blockchain SDK** | `@stellar/stellar-sdk` v17 | Horizon client, TransactionBuilder, ScVal conversion |
+| **Wallets** | `@stellar/freighter-api`, `@albedo-link/intent` | Browser extension and web popup wallet connectors |
+| **Smart Contract** | Soroban SDK (`rust`) | Rust contract deployed on Stellar Testnet |
+| **Analytics** | PostHog (`posthog-js`) | Product funnel and event tracking |
+| **Monitoring** | Sentry (`@sentry/nextjs`) | Real-time crash reporting and exception tracing |
+| **Validation** | Zod | Schema validation for API payloads and env vars |
+| **Deployment** | Vercel, Neon | Cloud hosting and managed PostgreSQL database |
 
 ---
 
-## Stellar Smart Contract
+## ⭐ Stellar Integration
 
-The ScholarPay Soroban smart contract handles idempotent on-chain payment recording and prevents double-payment.
+ScholarPay is natively built on the Stellar blockchain network:
 
-**Contract Details:**
+- **Network**: Stellar **TESTNET**
+- **Network Passphrase**: `Test SDF Network ; September 2015`
+- **Horizon URL**: `https://horizon-testnet.stellar.org`
+- **Soroban RPC URL**: `https://soroban-testnet.stellar.org`
+- **Contract Address**: [`CAQWR6A4JQIPR5IVPIF47KB2TJQJYFC6IDXXUZ2DRMOFFE4PDONQ7RCQ`](https://stellar.expert/explorer/testnet/contract/CAQWR6A4JQIPR5IVPIF47KB2TJQJYFC6IDXXUZ2DRMOFFE4PDONQ7RCQ)
 
-| Field | Value |
-|---|---|
-| Language | Rust (`soroban-sdk`) |
-| Network | Stellar **Testnet** |
-| Contract Address | `CAQWR6A4JQIPR5IVPIF47KB2TJQJYFC6IDXXUZ2DRMOFFE4PDONQ7RCQ` |
-| Network Passphrase | `Test SDF Network ; September 2015` |
-| Soroban RPC | `https://soroban-testnet.stellar.org` |
-| Horizon | `https://horizon-testnet.stellar.org` |
+### Soroban Smart Contract
 
-**Contract Functions:**
+The smart contract ([`contracts/scholarpay/src/lib.rs`](./contracts/scholarpay/src/lib.rs)) implements key financial safety guarantees:
 
 ```rust
-// Transfers token from sender to recipient; stores payment_id on-chain to prevent replay
-pub fn pay(env, sender, recipient, token, amount, payment_id)
+// Executes payment transfer and stores payment_id persistently to prevent replay
+pub fn pay(env: Env, sender: Address, recipient: Address, token: Address, amount: i128, payment_id: Symbol)
 
-// View function: returns true if payment_id was already executed on-chain
-pub fn is_paid(env, payment_id) -> bool
+// View function checking if payment_id was already executed on-chain
+pub fn is_paid(env: Env, payment_id: Symbol) -> bool
 ```
 
-Source: [`contracts/scholarpay/src/lib.rs`](./contracts/scholarpay/src/lib.rs)
-Full docs: [`docs/SMART_CONTRACT.md`](./docs/SMART_CONTRACT.md)
+---
+
+## 💳 Payment Flow
+
+```
+[Payer Browser] ──(Select Freighter/Albedo)──> [Sign Transaction XDR]
+                                                        │
+                                          Submit to Stellar Network
+                                                        │
+                                              Receive Transaction Hash
+                                                        │
+                                                        ▼
+[ScholarPay API /api/pay/verify] <──(Post Tx Hash)───────┘
+          │
+  Query Horizon RPC Server
+          │
+  ┌───────┴────────┐
+  ▼                ▼
+[Valid On-Chain] [Invalid / Unconfirmed]
+  │                │
+Update DB to      Return Verification Error
+CONFIRMED          
+  │
+Generate Receipt
+```
+
+1. Payer connects wallet via Freighter or Albedo on the payment page.
+2. The transaction XDR is generated using `@stellar/stellar-sdk` and signed in-browser.
+3. The transaction is submitted to the Stellar Testnet.
+4. The client sends the resulting transaction hash to ScholarPay's backend (`POST /api/pay/verify`).
+5. Backend verifies that:
+   - The transaction exists and completed successfully on Horizon.
+   - The operation type is a valid payment.
+   - The recipient address, asset type (`native` XLM), and payment amount match the stored payment request.
+6. The payment status updates to `CONFIRMED`, and the user is redirected to the receipt page.
 
 ---
 
-## Database & Backend
+## 👥 User Onboarding & Product Validation
 
-Prisma ORM 7 with driver adapters enables the same codebase to run against SQLite (local) and PostgreSQL (production) without code changes.
-
-The runtime adapter selection in [`src/lib/db.ts`](./src/lib/db.ts) inspects `DATABASE_URL` at startup and instantiates either `PrismaPg` (Neon) or `PrismaBetterSqlite3` accordingly.
-
----
-
-## Authentication & Security
-
-- Passwords hashed with `bcryptjs` (cost factor 12)
-- Sessions issued as JWTs signed with `jose` (HS256, 7-day expiry)
-- Session cookie is `httpOnly: true`, `secure: true` (production), `sameSite: "lax"`
-- Input validation with `zod` on all API endpoints
-- No private keys, seed phrases, or secret values are ever accepted, stored, or logged
-- Server-side Stellar verification: backend re-verifies every `transactionHash` independently on Horizon before changing payment status to `CONFIRMED`
-- All secrets managed via environment variables — never committed to the repository
+ScholarPay's MVP workflow was validated with over 10 real onboarded test users:
+- **User Onboarding**: Participants registered accounts, created test requests, connected wallets, and completed cross-border transactions on Stellar Testnet.
+- **Feedback Collection**: Validation responses and wallet addresses were logged via Google Forms and Google Sheets (accessible via the [Live Links](#-live-links) section above).
+- **In-App Feedback**: Users submitted star ratings and comments on the digital receipt view, stored in the PostgreSQL database and surfaced in the Admin Dashboard.
 
 ---
 
-## Analytics & Monitoring
+## 📊 Analytics
 
-### PostHog Analytics
+Product analytics are powered by **PostHog** ([`src/lib/analytics.ts`](./src/lib/analytics.ts)):
 
-PostHog is integrated via [`src/lib/analytics.ts`](./src/lib/analytics.ts) and captures the full user funnel:
-
-| Event | Trigger |
+| Event Name | Description |
 |---|---|
-| `user_registered` | Successful registration |
-| `user_login` | Successful login |
-| `payment_request_created` | Student creates a payment request |
-| `wallet_connected` | Sender connects Freighter or Albedo |
-| `payment_started` | Sender initiates payment flow |
-| `payment_signed` | Wallet signs the transaction |
-| `transaction_submitted` | Transaction hash submitted to backend |
-| `transaction_confirmed` | Backend confirms tx on Horizon |
-| `receipt_viewed` | Receipt page loaded |
-| `feedback_submitted` | User submits star rating |
+| `user_registered` | Fires on successful user registration |
+| `user_login` | Fires when a user logs in |
+| `payment_request_created` | Captures student payment request creation |
+| `wallet_connected` | Tracks Freighter or Albedo wallet connection |
+| `payment_started` | Tracks initiation of the payment flow |
+| `payment_signed` | Fires when transaction XDR is signed by wallet |
+| `transaction_submitted` | Fires when tx hash is posted to backend |
+| `transaction_confirmed` | Fires when backend confirms on-chain execution |
+| `receipt_viewed` | Fires when the payment receipt page is loaded |
+| `feedback_submitted` | Captures 1–5 star rating submission |
 
 ---
 
-> **[SCREENSHOT PLACEHOLDER: POSTHOG ANALYTICS DASHBOARD]**
->
-> *Caption: PostHog analytics dashboard showing ScholarPay product and payment events.*
+## 🛡️ Monitoring & Error Tracking
+
+Application monitoring is powered by **Sentry** ([`src/lib/monitoring.ts`](./src/lib/monitoring.ts)):
+- **Configuration**: Sentry SDK initialized via `withSentryConfig` in [`next.config.ts`](./next.config.ts).
+- **Data Hygiene**: Sanitization layer strips sensitive fields (`password`, `token`, `secret`) before event transmission.
+- **Verification**: Verified end-to-end locally via `/api/monitoring/test` endpoint, confirming exception capture and event delivery to the Sentry Issues dashboard.
 
 ---
 
-### Sentry Error Monitoring
+## 📱 Responsive Design
 
-Sentry is configured via `@sentry/nextjs` with `withSentryConfig` wrapping in [`next.config.ts`](./next.config.ts). It captures server-side and client-side exceptions. The monitoring wrapper is at [`src/lib/monitoring.ts`](./src/lib/monitoring.ts).
-
-The event `"ScholarPay Controlled Test Exception — Verifying Sentry Capture"` was successfully delivered to Sentry and confirmed visible in the Issues dashboard (locally verified, event flushed and confirmed received).
+ScholarPay is designed mobile-first and fully responsive across smartphones, tablets, and desktop displays. The layout utilizes CSS custom properties, dynamic grid layouts, and glassmorphic card elements for a sleek, modern fintech user experience across all screen sizes.
 
 ---
 
-> **[SCREENSHOT PLACEHOLDER: SENTRY ERROR MONITORING]**
->
-> *Caption: Sentry dashboard showing the successfully captured ScholarPay test exception "ScholarPay Controlled Test Exception — Verifying Sentry Capture" and event details.*
+## 🖼️ Product Screenshots
+
+Selected screenshots of the ScholarPay product experience are shown below.
 
 ---
 
-## Production Deployment
-
-Deployed on **Vercel** with Neon PostgreSQL as the production database.
-
-> **[PLACEHOLDER: LIVE VERCEL URL]**
->
-> *Replace this with your final Vercel deployment URL, e.g. `https://scholarpay.vercel.app`*
-
----
-
-## Product Screenshots
-
-> **[SCREENSHOT PLACEHOLDER: DESKTOP PRODUCT UI]**
->
-> *Caption: ScholarPay desktop interface showing the main product experience.*
-
----
-
-> **[SCREENSHOT PLACEHOLDER: DASHBOARD]**
->
-> *Caption: ScholarPay dashboard showing user payment requests and activity.*
-
----
-
-> **[SCREENSHOT PLACEHOLDER: PAYMENT FLOW]**
->
-> *Caption: ScholarPay public payment page showing wallet connection (Freighter/Albedo) and transaction interaction.*
-
----
-
-> **[SCREENSHOT PLACEHOLDER: PAYMENT SUCCESS / RECEIPT]**
->
-> *Caption: Successful Stellar Testnet payment receipt with transaction hash and Stellar Explorer link.*
-
----
-
-## Mobile Responsive Design
-
-The UI is fully responsive using CSS custom variables, flexbox/grid, and mobile-first breakpoints.
-
-> **[SCREENSHOT PLACEHOLDER: MOBILE HOME / DASHBOARD]**
->
-> *Caption: ScholarPay responsive mobile interface — home or dashboard view.*
-
----
-
-> **[SCREENSHOT PLACEHOLDER: MOBILE PAYMENT FLOW]**
->
-> *Caption: ScholarPay payment flow optimized for mobile screens.*
-
----
-
-## Admin Dashboard
-
-> **[SCREENSHOT PLACEHOLDER: ADMIN DASHBOARD]**
->
-> *Caption: ScholarPay admin dashboard showing platform-wide onboarded user count, payment activity, and collected feedback data.*
-
----
-
-## User Onboarding & Validation
-
-10+ users were onboarded for MVP validation. Participants filled out a Google Form to provide their Stellar Testnet wallet address and feedback on their experience.
-
-> **[PLACEHOLDER: GOOGLE FORM LINK]**
->
-> *Replace with your Google Form URL for user onboarding/feedback collection.*
-
-> **[PLACEHOLDER: GOOGLE SHEET LINK]**
->
-> *Replace with the Google Sheet URL containing collected user responses.*
-
----
-
-> **[SCREENSHOT PLACEHOLDER: USER FEEDBACK GOOGLE SHEET]**
->
-> *Caption: Google Sheet showing collected user responses including wallet addresses and feedback, used as supporting evidence for the 10+ user onboarding requirement.*
-
----
-
-> **[SCREENSHOT PLACEHOLDER: ADMIN USER COUNT]**
->
-> *Caption: ScholarPay admin dashboard showing the total number of onboarded registered users.*
-
----
-
-## Proof of Stellar Wallet Interactions
-
-Stellar Testnet wallet interactions are verified via the [Stellar Expert Testnet Explorer](https://stellar.expert/explorer/testnet).
-
-Each completed payment generates a unique Stellar transaction hash which is:
-1. Submitted by the sender's wallet (Freighter or Albedo)
-2. Independently verified server-side via `GET /api/pay/verify` against Horizon
-3. Stored in the `Payment` database record with `transactionHash` (unique constraint)
-4. Displayed on the receipt page with a direct Stellar Expert explorer link
-
-> **[SCREENSHOT PLACEHOLDER: STELLAR TESTNET TRANSACTION]**
->
-> *Caption: Stellar Expert Testnet Explorer showing a successful wallet interaction / transaction from a ScholarPay payment.*
-
-> **[PLACEHOLDER: TRANSACTION / EXPLORER LINK IF AVAILABLE]**
->
-> *Replace with a direct Stellar Expert testnet transaction URL, e.g. `https://stellar.expert/explorer/testnet/tx/<TX_HASH>`*
-
----
-
-## User Feedback Summary
-
-Feedback was collected via a Google Form distributed to onboarded users and is also capturable in-app on the receipt page (1–5 star rating + optional comment), stored in the `Feedback` database model.
-
-> **[SCREENSHOT PLACEHOLDER: USER FEEDBACK SUMMARY]**
->
-> *Caption: Summary of user feedback collected during ScholarPay MVP validation — Google Sheet responses or in-app feedback data.*
-
----
-
-## Demo Video
-
-> **[PLACEHOLDER: DEMO VIDEO LINK]**
->
-> *Caption: ScholarPay end-to-end product demonstration — showing registration, payment request creation, wallet connection, Stellar Testnet transaction, and receipt.*
-
----
-
-## Setup / Local Development
+## ⚙️ Local Development
 
 ### Prerequisites
-
-- Node.js 20+
+- Node.js 20.0 or higher
+- npm 10.0 or higher
 - A Stellar Testnet wallet (Freighter browser extension recommended)
-- Neon PostgreSQL account (or use local SQLite for development)
 
 ### Installation
 
-```bash
-git clone https://github.com/parasbabar/scholarpay.git
-cd scholarpay
-npm install
-```
+1. **Clone the Repository**:
+   ```bash
+   git clone https://github.com/parasbabar/scholarpay.git
+   cd scholarpay
+   ```
 
-### Environment Variables
+2. **Install Dependencies**:
+   ```bash
+   npm install
+   ```
 
-Copy `.env.example` to `.env` and fill in the values:
+3. **Configure Environment Variables**:
+   Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
 
-```bash
-cp .env.example .env
-```
+4. **Initialize Database**:
+   ```bash
+   npx prisma db push
+   ```
 
-Required variables (names only — never commit actual values):
+5. **Start Development Server**:
+   ```bash
+   npm run dev
+   ```
+   Access the application at [http://localhost:3000](http://localhost:3000).
 
-| Variable | Purpose |
-|---|---|
-| `DATABASE_URL` | PostgreSQL connection string (Neon) or `file:./dev.db` for SQLite |
-| `JWT_SECRET` | JWT signing secret (min 32 characters) |
-| `NEXT_PUBLIC_SOROBAN_CONTRACT_ID` | Deployed Soroban contract address |
-| `NEXT_PUBLIC_STELLAR_NETWORK` | `TESTNET` |
-| `NEXT_PUBLIC_STELLAR_NETWORK_PASSPHRASE` | `Test SDF Network ; September 2015` |
-| `NEXT_PUBLIC_STELLAR_HORIZON_URL` | `https://horizon-testnet.stellar.org` |
-| `NEXT_PUBLIC_STELLAR_RPC_URL` | `https://soroban-testnet.stellar.org` |
-| `NEXT_PUBLIC_POSTHOG_KEY` | PostHog project API key |
-| `NEXT_PUBLIC_POSTHOG_HOST` | PostHog host URL |
-| `NEXT_PUBLIC_SENTRY_DSN` | Sentry DSN (client-side) |
-| `SENTRY_DSN` | Sentry DSN (server-side) |
+6. **Build Production Bundle**:
+   ```bash
+   npm run build
+   ```
 
-### Run Development Server
+---
 
-```bash
-npm run dev
-```
+## 🔐 Environment Variables
 
-Open [http://localhost:3000](http://localhost:3000)
+Configure the following environment variable names in your `.env` file or cloud platform dashboard:
 
-### Build
+```env
+# Client-Side Configuration (Public)
+NEXT_PUBLIC_APP_URL=
+NEXT_PUBLIC_STELLAR_NETWORK=
+NEXT_PUBLIC_STELLAR_NETWORK_PASSPHRASE=
+NEXT_PUBLIC_STELLAR_HORIZON_URL=
+NEXT_PUBLIC_STELLAR_RPC_URL=
+NEXT_PUBLIC_SOROBAN_CONTRACT_ID=
+NEXT_PUBLIC_POSTHOG_KEY=
+NEXT_PUBLIC_POSTHOG_HOST=
+NEXT_PUBLIC_SENTRY_DSN=
 
-```bash
-npm run build
-```
-
-### Tests
-
-```bash
-# Unit & integration tests (Stellar address validation, payment state machine)
-npx tsx tests/validation.test.ts
-
-# Auth & database integration tests (requires DATABASE_URL)
-npx tsx tests/auth.test.ts
-
-# Live Stellar Testnet on-chain verification
-npx tsx tests/stellar.test.ts
+# Server-Only Secrets
+DATABASE_URL=
+JWT_SECRET=
+SENTRY_DSN=
 ```
 
 ---
 
-## Project Structure
+## 🧪 Testing & Verification
+
+ScholarPay features unit, integration, and live on-chain test suites:
+
+```bash
+# Run unit & integration tests (Address validation, status state machine)
+npx tsx tests/validation.test.ts
+
+# Run authentication & database integration tests
+npx tsx tests/auth.test.ts
+
+# Run live Stellar Testnet on-chain verification tests
+npx tsx tests/stellar.test.ts
+```
+
+### Verification Highlights:
+- `npm run build`: Production build passes cleanly with 21 static & dynamic routes generated.
+- `validation.test.ts`: 10/10 unit tests passed.
+- `stellar.test.ts`: 5/5 on-chain tests passed against live Stellar Testnet RPC.
+
+---
+
+## 📁 Project Structure
 
 ```
 scholarpay/
@@ -405,139 +335,59 @@ scholarpay/
 │   └── scholarpay/
 │       └── src/lib.rs           # Soroban smart contract (Rust)
 ├── docs/
-│   ├── ARCHITECTURE.md
-│   ├── DEPLOYMENT.md
-│   ├── SMART_CONTRACT.md
-│   ├── USER_FLOW.md
-│   └── USER_ONBOARDING.md
+│   ├── ARCHITECTURE.md          # Architecture specification
+│   ├── DEPLOYMENT.md            # Production deployment guide
+│   ├── SMART_CONTRACT.md        # Smart contract documentation
+│   ├── USER_FLOW.md             # Complete user flow diagram
+│   └── USER_ONBOARDING.md       # User onboarding guide
 ├── prisma/
-│   ├── schema.prisma            # SQLite schema (local dev)
-│   └── schema.postgresql.prisma # PostgreSQL schema (production)
+│   ├── schema.prisma            # SQLite schema (Local Dev)
+│   └── schema.postgresql.prisma # PostgreSQL schema (Production)
 ├── scripts/
-│   └── prisma-generate.js       # Auto-selects correct Prisma config at build time
+│   └── prisma-generate.js       # Dynamic Prisma generator script
 ├── src/
-│   ├── app/
-│   │   ├── page.tsx             # Landing page
-│   │   ├── dashboard/           # Student dashboard
-│   │   ├── pay/[requestId]/     # Public payment page
-│   │   ├── receipt/[paymentId]/ # Receipt + feedback
-│   │   ├── admin/               # Admin dashboard
-│   │   ├── register/            # Registration
-│   │   ├── login/               # Login
-│   │   ├── faq/                 # FAQ
-│   │   └── api/                 # API routes
+│   ├── app/                     # Next.js App Router pages & API endpoints
+│   │   ├── admin/               # Admin dashboard page
+│   │   ├── api/                 # Backend API routes
+│   │   ├── dashboard/           # Student dashboard page
+│   │   ├── faq/                 # FAQ & onboarding guide page
+│   │   ├── login/               # User login page
+│   │   ├── pay/[requestId]/     # Public shareable payment page
+│   │   ├── receipt/[paymentId]/ # Payment receipt & feedback page
+│   │   ├── register/            # User registration page
+│   │   └── page.tsx             # Main landing page
 │   ├── components/              # Reusable UI components
 │   ├── contexts/
-│   │   └── AuthContext.tsx      # JWT auth state
+│   │   └── AuthContext.tsx      # JWT session context provider
 │   └── lib/
-│       ├── analytics.ts         # PostHog event tracking
-│       ├── auth.ts              # JWT sign/verify
-│       ├── db.ts                # Prisma client (auto-selects PG/SQLite)
-│       ├── env.ts               # Runtime environment variable validation
-│       ├── monitoring.ts        # Sentry error capture wrapper
-│       ├── stellar.ts           # Stellar SDK utilities
-│       └── utils.ts             # Shared utilities
+│       ├── analytics.ts         # PostHog tracking module
+│       ├── auth.ts              # JWT signing & verification
+│       ├── db.ts                # Prisma database client initializer
+│       ├── env.ts               # Environment variable validator
+│       ├── monitoring.ts        # Sentry error capture module
+│       └── stellar.ts           # Stellar SDK & Horizon client helpers
 ├── tests/
 │   ├── auth.test.ts             # Auth & DB integration tests
-│   ├── stellar.test.ts          # Live Stellar Testnet on-chain tests
-│   └── validation.test.ts       # Unit tests
+│   ├── stellar.test.ts          # Stellar Testnet live tests
+│   └── validation.test.ts       # Address validation & state machine unit tests
 ├── .env.example                 # Environment variable template
-├── next.config.ts               # Next.js + Sentry config
-├── prisma.pg.config.ts          # Prisma config for PostgreSQL
-├── prisma7.config.ts            # Prisma config for SQLite
-├── sentry.client.config.ts      # Sentry client-side init
-└── sentry.server.config.ts      # Sentry server-side init
+├── next.config.ts               # Next.js & Sentry configuration
+└── README.md
 ```
 
 ---
 
-## Testing & Verification
+## 📚 Documentation
 
-### `npm run build`
-
-**PASSED** — Production build compiled successfully (21/21 pages generated, TypeScript clean).
-
-```
-Compiled successfully
-Finished TypeScript
-Generating static pages (21/21)
-```
-
-### Unit & Integration Tests (`tests/validation.test.ts`)
-
-**PASSED — 10/10 tests**
-
-```
-✓ Valid Stellar public key (G...) returns true
-✓ Invalid string returns false
-✓ Empty string returns false
-✓ Secret key or malformed key returns false
-✓ Address shortened correctly: GDEY4...PJJ2
-✓ Payment request amount must be greater than 0
-✓ Payment request deadline must be in the future
-✓ CREATED status can transition to SUBMITTED
-✓ SUBMITTED status can transition to CONFIRMED
-✓ CONFIRMED terminal status cannot transition back to SUBMITTED
-Test Results: 10 passed, 0 failed
-```
-
-### Live Stellar Testnet On-Chain Tests (`tests/stellar.test.ts`)
-
-**PASSED — 5/5 tests** (live network queries)
-
-```
-✓ Network Passphrase matches official Testnet: "Test SDF Network ; September 2015"
-✓ Network Passphrase rejected obsolete 'October 2013' passphrase
-✓ Soroban contract address matches deployed address (CAQWR6A4JQIPR5IVPIF47KB2TJQJYFC6IDXXUZ2DRMOFFE4PDONQ7RCQ)
-✓ Successfully queried live Stellar Testnet ledger (Latest sequence: 4398656)
-✓ Transaction verifier correctly rejects fake or non-existent transaction hash
-Stellar On-Chain Test Results: 5 passed, 0 failed
-```
-
-### Sentry Monitoring Verification
-
-Event `"ScholarPay Controlled Test Exception — Verifying Sentry Capture"` successfully delivered to Sentry (locally verified via `GET /api/monitoring/test` — flush confirmed, event visible in Sentry Issues dashboard).
+For deeper technical specifications, refer to the documentation in the [`docs/`](./docs/) directory:
+- [`ARCHITECTURE.md`](./docs/ARCHITECTURE.md) — Detailed architecture diagram and layer specifications.
+- [`SMART_CONTRACT.md`](./docs/SMART_CONTRACT.md) — Soroban Rust smart contract details and functions.
+- [`USER_FLOW.md`](./docs/USER_FLOW.md) — Step-by-step state diagrams for students and senders.
+- [`USER_ONBOARDING.md`](./docs/USER_ONBOARDING.md) — User onboarding and testing guide.
+- [`DEPLOYMENT.md`](./docs/DEPLOYMENT.md) — Production deployment guidelines for Vercel and Neon.
 
 ---
 
-## Level 4 Green Belt Submission Evidence
+## 📄 License
 
-| # | Requirement | Status | Evidence / Location |
-|---|---|---|---|
-| 1 | Production-ready MVP | ✅ | Full auth, payments, receipts, admin — live on Vercel |
-| 2 | Stable frontend/backend architecture | ✅ | Next.js App Router, Prisma, JWT, Zod — `src/` |
-| 3 | Mobile responsive UI | ✅ | CSS responsive breakpoints, mobile-first layout |
-| 4 | Loading states and error handling | ✅ | React error boundary (`app/error.tsx`), loading states in components |
-| 5 | Minimum 10 real users onboarded | 🟡 | To be added manually: Google Form/Sheet link + admin screenshot |
-| 6 | Proof of wallet interactions | 🟡 | To be added manually: Stellar Explorer tx link + screenshot |
-| 7 | Basic user feedback collection | ✅ | In-app feedback (1–5 stars, `Feedback` model) + Google Form |
-| 8 | Production deployment | 🟡 | Vercel deployment live — add final URL to placeholder above |
-| 9 | Monitoring and analytics integration | ✅ | PostHog (events wired across full funnel) + Sentry (delivery verified) |
-| 10 | Optimized user experience | ✅ | Glassmorphic UI, dark mode, micro-animations, FAQ page |
-| 11 | Proper project structure and documentation | ✅ | `src/`, `docs/`, `tests/`, README |
-| 12 | Stellar Testnet smart contract deployment | ✅ | `CAQWR6A4JQIPR5IVPIF47KB2TJQJYFC6IDXXUZ2DRMOFFE4PDONQ7RCQ` |
-| 13 | Minimum 15+ meaningful commits | ✅ | **27 commits** — `git rev-list --count HEAD` |
-| 14 | Public GitHub repository | ✅ | `https://github.com/parasbabar/scholarpay` |
-| 15 | README with complete documentation | ✅ | This document |
-| 16 | Live demo link | 🟡 | To be added manually — replace `[PLACEHOLDER: LIVE VERCEL URL]` above |
-| 17 | Contract deployment address | ✅ | `CAQWR6A4JQIPR5IVPIF47KB2TJQJYFC6IDXXUZ2DRMOFFE4PDONQ7RCQ` |
-| 18 | Product UI screenshots | 🟡 | To be added manually — 4 screenshot placeholders above |
-| 19 | Mobile responsive screenshots | 🟡 | To be added manually — 2 mobile screenshot placeholders above |
-| 20 | Analytics/monitoring evidence | 🟡 | To be added manually — PostHog + Sentry screenshot placeholders above |
-| 21 | Demo video | 🟡 | To be added manually — replace `[PLACEHOLDER: DEMO VIDEO LINK]` above |
-| 22 | Proof of 10+ user wallet interactions | 🟡 | To be added manually — Stellar Explorer link + screenshot |
-| 23 | Basic user feedback summary | 🟡 | To be added manually — Google Sheet or admin feedback screenshot |
-
-> **Legend:**
-> ✅ Verified and present in the codebase / confirmed working
-> 🟡 Requires manual addition by the project owner
-
----
-
-## License / Credits
-
-**Repository**: [github.com/parasbabar/scholarpay](https://github.com/parasbabar/scholarpay)
-**Author**: Paras Babar
-**Network**: Stellar Testnet
-**Smart Contract**: Soroban (Rust)
-**License**: MIT
+This project is licensed under the [MIT License](LICENSE).
