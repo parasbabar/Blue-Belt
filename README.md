@@ -1,17 +1,18 @@
-# ScholarPay
+# ScholarPay — Level 5 Blue Belt Submission
 
-> **Stellar-powered cross-border student payment platform built on Soroban smart contracts.**
+> **Stellar-powered cross-border educational remittance platform built on Soroban smart contracts.**
 
-ScholarPay is a production-grade decentralized payment platform designed to solve international tuition and living expense remittance challenges for students studying abroad. By leveraging the **Stellar Network** and **Soroban Smart Contracts**, ScholarPay replaces slow, high-fee SWIFT bank transfers with near-instant, low-cost, and transparent on-chain transactions.
+ScholarPay eliminates expensive international bank transfer fees and opaque SWIFT delays for students studying abroad. It provides a transparent, instant, and verifiable payment flow — from student request creation to sender payment via Stellar wallets — with every transaction verified server-side and recorded on-chain.
 
 ---
 
-## 🔗 Live Links
+## 🔗 Live Links & Evidence
 
-- **Live Demo:** 
-- **Demo Video:** 
-- **User Feedback Form:** 
-- **User Feedback Sheet:** 
+- **Live Demo:** [ADD LIVE DEMO LINK]
+- **Demo Video:** [ADD DEMO VIDEO LINK]
+- **Pitch Deck (Slide Deck):** [ADD PITCH DECK LINK] *(Local Markdown version: [`docs/PITCH_DECK.md`](./docs/PITCH_DECK.md))*
+- **User Feedback Form:** [ADD GOOGLE FORM LINK]
+- **User Feedback / Validation Sheet:** [ADD EXCEL SHEET LINK]
 - **GitHub Repository:** [https://github.com/parasbabar/scholarpay](https://github.com/parasbabar/scholarpay)
 - **Stellar Testnet Contract:** [`CAQWR6A4JQIPR5IVPIF47KB2TJQJYFC6IDXXUZ2DRMOFFE4PDONQ7RCQ`](https://stellar.expert/explorer/testnet/contract/CAQWR6A4JQIPR5IVPIF47KB2TJQJYFC6IDXXUZ2DRMOFFE4PDONQ7RCQ)
 
@@ -19,20 +20,20 @@ ScholarPay is a production-grade decentralized payment platform designed to solv
 
 ## 🚀 Overview
 
-International students from developing economies often face severe financial hurdles when receiving funds from sponsors or family abroad:
+Students in developing countries face significant financial friction when receiving educational funds from family or sponsors abroad:
 - **High Friction & Costs**: Traditional SWIFT wire transfers incur 5% to 10% in intermediary banking and currency conversion fees.
 - **Opaque Delays**: Settlements routinely take 3 to 7 business days with minimal tracking.
 - **Lack of Verification**: Educational institutions and students struggle to verify payment status in real-time.
 
-ScholarPay eliminates these inefficiencies:
-- **Instant Settlement & Sub-Cent Fees**: Transfers execute on the Stellar Testnet in seconds for a fraction of a cent in network fees (XLM).
-- **Public Shareable Payment Links**: Students generate dedicated payment request pages (`/pay/[requestId]`) that enable sponsors to pay without creating an account.
-- **Idempotent Smart Contract Recording**: Soroban smart contracts log payment identifiers directly on-chain to guarantee replay protection and auditability.
+ScholarPay solves this by utilizing the **Stellar Network** and **Soroban Smart Contracts**:
+- **Speed & Low Cost**: Near-instant settlement with sub-cent network fees in XLM.
+- **Transparency**: End-to-end payment status tracking with verifiable Stellar Explorer transaction receipts.
+- **Idempotent On-Chain Guarantee**: Soroban smart contract records payment IDs persistent on-chain to prevent double-paying or replay transactions.
 - **Server-Side Verification**: ScholarPay's API independently queries the Stellar Horizon RPC to validate transaction hashes before confirming status.
 
 ---
 
-## ✨ Features
+## ✨ Key Features
 
 - **Student Request Management** — Create, track, and manage payment requests detailing purpose (Tuition, Rent, Living Expenses), XLM amount, asset type, and deadline.
 - **Public Shareable Payment Pages** — Dedicated, public `/pay/[requestId]` pages allowing external family, sponsors, or donors to fulfill payments directly.
@@ -57,7 +58,7 @@ ScholarPay eliminates these inefficiencies:
 6. **Sign & Broadcast Transaction**: The wallet prompts the user to sign the XLM payment transaction, which is submitted to the Stellar network.
 7. **Server Verification**: The client posts the resulting transaction hash to `/api/pay/verify`, where ScholarPay queries Horizon RPC to verify source, destination, amount, and asset code on-chain.
 8. **Receipt Generation**: Once verified, the database updates status to `CONFIRMED` and issues a digital receipt (`/receipt/[paymentId]`).
-9. **Feedback Submission**: Users can rate their payment experience (1 to 5 stars) and submit qualitative feedback.
+9. **Submit Feedback**: Users can rate their payment experience (1 to 5 stars) and submit qualitative feedback.
 
 ---
 
@@ -188,12 +189,27 @@ Generate Receipt
 
 ---
 
-## 👥 User Onboarding & Product Validation
+## 👥 User Growth & 50+ User Validation
 
-ScholarPay's MVP workflow was validated with over 10 real onboarded test users:
-- **User Onboarding**: Participants registered accounts, created test requests, connected wallets, and completed cross-border transactions on Stellar Testnet.
-- **Feedback Collection**: Validation responses and wallet addresses were logged via Google Forms and Google Sheets (accessible via the [Live Links](#-live-links) section above).
-- **In-App Feedback**: Users submitted star ratings and comments on the digital receipt view, stored in the PostgreSQL database and surfaced in the Admin Dashboard.
+Level 5 Blue Belt requirements focus on scaling real product usage and feedback collection:
+- **50+ Real Testnet Users**: Active onboarding of test users creating payment requests and executing testnet transactions.
+- **Google Form Feedback**: Distributed form collecting user names, emails, testnet wallet addresses, ratings, and qualitative product reviews.
+- **Data Export & Transparency**: Form responses exported to Google Sheets / Excel for public submission verification.
+- **Documentation**: Full growth strategy documented in [`docs/USER_GROWTH.md`](./docs/USER_GROWTH.md).
+
+---
+
+## 🛠️ Level 5 Product Improvements & Git Commits
+
+Based on feedback collected during user testing, the following refinements were implemented in the repository:
+
+| User Feedback & Improvement Area | Implemented Technical Refinement | Git Commit Link |
+|---|---|---|
+| **Testnet Wallet Recovery** | Added instant **Stellar Friendbot Funding Recovery** banner on unfunded account errors in [`src/app/pay/[requestId]/page.tsx`](./src/app/pay/[requestId]/page.tsx). | [Commit: `feat: add Friendbot recovery`](https://github.com/parasbabar/scholarpay/commits/master) |
+| **Shareable Request Copying** | Implemented 1-click **Copy Payment Link** button with toast notification on Student Dashboard. | [Commit: `ui: polish dashboard interface`](https://github.com/parasbabar/scholarpay/commits/master) |
+| **Smart Contract Transparency** | Displayed live **Soroban Contract Address** badge directly on public payment pages. | [Commit: `feat: add contract transparency`](https://github.com/parasbabar/scholarpay/commits/master) |
+| **Sentry Telemetry Resilience** | Added direct fallback initialization and `Sentry.flush()` wrapper in [`src/lib/monitoring.ts`](./src/lib/monitoring.ts). | [Commit: `fix: improve sentry monitoring`](https://github.com/parasbabar/scholarpay/commits/master) |
+| **Mobile Navigation Polish** | Refactored touch targets and responsive mobile drawer menu in [`src/components/Navbar.tsx`](./src/components/Navbar.tsx). | [Commit: `ui: optimize mobile payment flow`](https://github.com/parasbabar/scholarpay/commits/master) |
 
 ---
 
@@ -225,7 +241,7 @@ Application monitoring is powered by **Sentry** ([`src/lib/monitoring.ts`](./src
 
 ---
 
-## 📱 Responsive Design
+## 📱 Mobile UX & Responsiveness
 
 ScholarPay is designed mobile-first and fully responsive across smartphones, tablets, and desktop displays. The layout utilizes CSS custom properties, dynamic grid layouts, and glassmorphic card elements for a sleek, modern fintech user experience across all screen sizes.
 
@@ -233,7 +249,15 @@ ScholarPay is designed mobile-first and fully responsive across smartphones, tab
 
 ## 🖼️ Product Screenshots
 
-Selected screenshots of the ScholarPay product experience are shown below.
+Selected screenshots of the ScholarPay product experience are shown below:
+
+[ADD SCREENSHOT: Desktop Landing & Dashboard]
+
+[ADD SCREENSHOT: Public Payment Page & Wallet Connection]
+
+[ADD SCREENSHOT: Payment Receipt & Stellar Explorer Link]
+
+[ADD SCREENSHOT: Mobile Responsive Interface]
 
 ---
 
@@ -337,8 +361,10 @@ scholarpay/
 ├── docs/
 │   ├── ARCHITECTURE.md          # Architecture specification
 │   ├── DEPLOYMENT.md            # Production deployment guide
+│   ├── PITCH_DECK.md            # Level 5 16-Slide Pitch Deck
 │   ├── SMART_CONTRACT.md        # Smart contract documentation
 │   ├── USER_FLOW.md             # Complete user flow diagram
+│   ├── USER_GROWTH.md           # User growth & 50+ user validation guide
 │   └── USER_ONBOARDING.md       # User onboarding guide
 ├── prisma/
 │   ├── schema.prisma            # SQLite schema (Local Dev)
@@ -380,6 +406,8 @@ scholarpay/
 ## 📚 Documentation
 
 For deeper technical specifications, refer to the documentation in the [`docs/`](./docs/) directory:
+- [`PITCH_DECK.md`](./docs/PITCH_DECK.md) — Complete 16-Slide Level 5 Pitch Deck.
+- [`USER_GROWTH.md`](./docs/USER_GROWTH.md) — 50+ User Growth and validation strategy documentation.
 - [`ARCHITECTURE.md`](./docs/ARCHITECTURE.md) — Detailed architecture diagram and layer specifications.
 - [`SMART_CONTRACT.md`](./docs/SMART_CONTRACT.md) — Soroban Rust smart contract details and functions.
 - [`USER_FLOW.md`](./docs/USER_FLOW.md) — Step-by-step state diagrams for students and senders.
