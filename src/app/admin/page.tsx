@@ -5,7 +5,7 @@ import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import {
-  BarChart3, Users, FileText, CheckCircle, AlertTriangle, Star, Zap,
+  BarChart3, FileText, CheckCircle, Star, Zap,
   RefreshCw, Shield, ArrowLeft,
 } from "lucide-react";
 
@@ -86,16 +86,7 @@ export default function AdminPage() {
         )}
 
         {/* Stats Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
-          <div className="card">
-            <div className="flex items-center justify-between mb-2">
-              <span className="text-xs font-semibold text-[var(--color-muted)] uppercase">Onboarded Users</span>
-              <Users className="w-4 h-4 text-blue-400" />
-            </div>
-            <div className="text-3xl font-bold">{stats?.totalUsers ?? "—"}</div>
-            <div className="text-xs text-[var(--color-muted)] mt-1">Registered students & senders</div>
-          </div>
-
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           <div className="card">
             <div className="flex items-center justify-between mb-2">
               <span className="text-xs font-semibold text-[var(--color-muted)] uppercase">Total Requests</span>
