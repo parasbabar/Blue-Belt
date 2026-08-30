@@ -557,6 +557,20 @@ export default function PaymentRequestPage({ params }: { params: Promise<{ reque
                   <p className="text-sm text-[var(--color-muted)] max-w-md mx-auto">
                     {formatErrorMessage(walletErr || "The payment transaction could not be completed.")}
                   </p>
+                  {(walletErr.includes("not found") || walletErr.includes("Friendbot") || walletErr.includes("unfunded")) && (
+                    <div className="bg-yellow-500/10 border border-yellow-500/30 rounded-lg p-3 max-w-md mx-auto text-xs text-yellow-300">
+                      <p className="font-semibold mb-1">Account not active on Stellar Testnet?</p>
+                      <p className="text-[var(--color-muted)] mb-2">Stellar Testnet accounts require initial funding of test XLM via Friendbot before receiving or sending transactions.</p>
+                      <a
+                        href="https://laboratory.stellar.org/#account-creator?network=test"
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="btn-secondary text-xs py-1.5 px-3 justify-center inline-flex items-center gap-1.5 text-yellow-300 border-yellow-500/40 hover:bg-yellow-500/20"
+                      >
+                        Fund Account via Stellar Friendbot <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  )}
                   <button
                     onClick={() => { setStep("REVIEW"); setWalletErr(""); }}
                     className="btn-primary text-sm py-2 px-5 mx-auto"
