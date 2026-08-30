@@ -8,11 +8,11 @@ ScholarPay eliminates expensive international bank transfer fees and opaque SWIF
 
 ## 🔗 Live Links & Submission Evidence
 
-- **Live Demo:** [ADD LIVE DEMO LINK]
-- **Demo Video:** [ADD DEMO VIDEO LINK]
-- **Pitch Deck (Slide Deck):** [ADD PITCH DECK LINK] *(Local Markdown version: [`docs/PITCH_DECK.md`](./docs/PITCH_DECK.md))*
-- **User Feedback Form:** [ADD GOOGLE FORM LINK]
-- **User Validation Sheet:** [ADD GOOGLE SHEET LINK]
+- **Live Demo:** https://blue-belt-f34cema1d-parasbabars-projects.vercel.app/
+- **Demo Video:** https://youtu.be/vlf4wMh5DZ0?si=KJ4WAnVfRt_bKLaA
+- **Pitch Deck (Slide Deck):** [https://drive.google.com/file/d/14td1JtwyS1zxcT601QOAtRjvNrXeSTV9/view?usp=sharing] *(Local Markdown version: [`docs/PITCH_DECK.md`](./docs/PITCH_DECK.md))*
+- **User Feedback Form:** https://docs.google.com/forms/d/e/1FAIpQLSe9ObDBqflfx_nb5J589_dSqp7jzCBaobDvUlaHFg7k7Xr40Q/viewform?usp=sharing&ouid=112539781041533266736
+- **User Validation Sheet:** https://docs.google.com/spreadsheets/d/1OsfOnBLNPz6mK8s8b7F9Cuu4pZOCbF_BdRYMAWzUuOM/edit?usp=sharing
 - **GitHub Repository:** [https://github.com/parasbabar/Blue-Belt](https://github.com/parasbabar/Blue-Belt)
 - **Stellar Testnet Contract:** [`CAQWR6A4JQIPR5IVPIF47KB2TJQJYFC6IDXXUZ2DRMOFFE4PDONQ7RCQ`](https://stellar.expert/explorer/testnet/contract/CAQWR6A4JQIPR5IVPIF47KB2TJQJYFC6IDXXUZ2DRMOFFE4PDONQ7RCQ)
 
@@ -300,15 +300,8 @@ ScholarPay is designed mobile-first and fully responsive across smartphones, tab
 
 ## 🖼️ Product Screenshots
 
-Selected screenshots of the ScholarPay product experience:
+<img width="1920" height="1080" alt="Screenshot 2026-08-30 215957" src="https://github.com/user-attachments/assets/7ae67ef0-89c6-41dc-94ed-dc6526d6d437" />
 
-[ADD SCREENSHOTS: Desktop Landing & Student Dashboard]
-
-[ADD SCREENSHOTS: Public Payment Page & Wallet Connectors]
-
-[ADD SCREENSHOTS: Official Digital Payment Receipt & Stellar Explorer Verification]
-
-[ADD SCREENSHOTS: Admin Validation Dashboard & Mobile Interface]
 
 ---
 
