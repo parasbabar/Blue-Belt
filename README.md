@@ -6,14 +6,14 @@ ScholarPay eliminates expensive international bank transfer fees and opaque SWIF
 
 ---
 
-## 🔗 Live Links & Evidence
+## 🔗 Live Links & Submission Evidence
 
 - **Live Demo:** [ADD LIVE DEMO LINK]
 - **Demo Video:** [ADD DEMO VIDEO LINK]
 - **Pitch Deck (Slide Deck):** [ADD PITCH DECK LINK] *(Local Markdown version: [`docs/PITCH_DECK.md`](./docs/PITCH_DECK.md))*
 - **User Feedback Form:** [ADD GOOGLE FORM LINK]
-- **User Feedback / Validation Sheet:** [ADD EXCEL SHEET LINK]
-- **GitHub Repository:** [https://github.com/parasbabar/scholarpay](https://github.com/parasbabar/scholarpay)
+- **User Validation Sheet:** [ADD GOOGLE SHEET LINK]
+- **GitHub Repository:** [https://github.com/parasbabar/Blue-Belt](https://github.com/parasbabar/Blue-Belt)
 - **Stellar Testnet Contract:** [`CAQWR6A4JQIPR5IVPIF47KB2TJQJYFC6IDXXUZ2DRMOFFE4PDONQ7RCQ`](https://stellar.expert/explorer/testnet/contract/CAQWR6A4JQIPR5IVPIF47KB2TJQJYFC6IDXXUZ2DRMOFFE4PDONQ7RCQ)
 
 ---
@@ -42,7 +42,7 @@ ScholarPay solves this by utilizing the **Stellar Network** and **Soroban Smart 
 - **Soroban Smart Contract** — On-chain Rust contract deployed on Stellar Testnet for payment execution and status lookup (`is_paid`).
 - **Digital Transaction Receipts** — Official receipts generated with direct links to the Stellar Expert Testnet Explorer.
 - **In-App & Google Form Feedback** — Integrated 1–5 star rating system on receipt pages and external validation form tracking.
-- **Admin Management Portal** — Comprehensive dashboard (/admin) displaying platform metrics, total users, payment volume, and feedback.
+- **Admin Management Portal** — Comprehensive dashboard (/admin) displaying platform metrics, total payment requests, confirmed on-chain transactions, average rating, and user feedback submissions.
 - **PostHog Funnel Analytics** — End-to-end event tracking from registration through wallet connection, payment signing, and receipt viewing.
 - **Sentry Error Tracking** — Client and server error monitoring with sanitized context logging and automated alerting.
 
@@ -189,27 +189,78 @@ Generate Receipt
 
 ---
 
-## 👥 User Growth & 50+ User Validation
+## 👥 User Growth & Product Validation
 
-Level 5 Blue Belt requirements focus on scaling real product usage and feedback collection:
-- **50+ Real Testnet Users**: Active onboarding of test users creating payment requests and executing testnet transactions.
-- **Google Form Feedback**: Distributed form collecting user names, emails, testnet wallet addresses, ratings, and qualitative product reviews.
+Level 5 Blue Belt requirements focus on scaling product usage, user validation, and structured feedback collection:
+
+- **50+ User Validation Survey Participants**: 50+ test users onboarded through the product validation workflow, submitting structured feedback via Google Form (capturing name, email, Stellar wallet address `G...`, 1–5 star rating, and qualitative product reviews).
+- **Stellar Testnet Wallet Activity**: Active testnet wallets used by participants to test payment request fulfillment using Freighter and Albedo wallet connectors.
+- **Confirmed On-Chain Payment Transactions**: Real Stellar Testnet XLM payments executed on-chain, verified server-side via Horizon RPC, recorded in the database, and issued digital receipts.
 - **Data Export & Transparency**: Form responses exported to Google Sheets / Excel for public submission verification.
 - **Documentation**: Full growth strategy documented in [`docs/USER_GROWTH.md`](./docs/USER_GROWTH.md).
 
 ---
 
-## 🛠️ Level 5 Product Improvements & Git Commits
+## 🛠️ Feedback-Driven Product Improvements
 
-Based on feedback collected during user testing, the following refinements were implemented in the repository:
+User feedback collected during testing directly drove iterative improvements across the application architecture, user experience, error resilience, and analytics tracking.
 
-| User Feedback & Improvement Area | Implemented Technical Refinement | Git Commit Link |
+### User Feedback Iteration Process
+
+`User Feedback → Problem Identified → Change Implemented → Commit Evidence`
+
+1. **User Feedback**: Testers with new Testnet wallets encountered payment failures when their XLM balance was 0.
+   - **Problem Identified**: Unfunded Stellar Testnet accounts cannot sign or broadcast payment transactions without initial Testnet XLM.
+   - **Change Implemented**: Added an automatic detection banner on payment failure with a direct 1-click Stellar Friendbot funding recovery link.
+   - **Commit Evidence**: [`79dff22`](https://github.com/parasbabar/Blue-Belt/commit/79dff2234032d8479e0f31be4d898516d2eeefd0)
+
+2. **User Feedback**: Browser console showed red `401 Unauthorized` network error when visitors loaded public payment/receipt pages.
+   - **Problem Identified**: `Navbar` called `GET /api/auth/me` to check session status. When unauthenticated, the API returned HTTP 401, triggering browser network error logs.
+   - **Change Implemented**: Updated `GET /api/auth/me` to return HTTP 200 OK with `{ user: null }` for unauthenticated visitors, preserving authentication security while eliminating console errors.
+   - **Commit Evidence**: [`c56d96b`](https://github.com/parasbabar/Blue-Belt/commit/c56d96bfb81f185367b66df2bfdbb5ca5ef9fdbf)
+
+3. **User Feedback**: Admin dashboard contained redundant user counts that distracted from product validation metrics and feedback submissions.
+   - **Problem Identified**: The onboarded user stat card overlapped with raw database counts and wasn't focused on transaction validation.
+   - **Change Implemented**: Removed the user count card and realigned the remaining metric cards (Total Requests, Confirmed On-Chain, Avg Rating) into a responsive 3-column layout.
+   - **Commit Evidence**: [`54e16c5`](https://github.com/parasbabar/Blue-Belt/commit/54e16c5a52e9a2b952f1ca9e0ee90efb22a00c6d)
+
+4. **User Feedback**: PostHog telemetry failed to record events across key payment funnel steps in production.
+   - **Problem Identified**: `posthog.__loaded` guard prevented early event dispatching, and page view triggers were missing on public payment links.
+   - **Change Implemented**: Resolved PostHog client initialization, removed restrictive guards, and wired explicit event hooks across registration, wallet connection, payment signing, and receipt views.
+   - **Commit Evidence**: [`b71ad07`](https://github.com/parasbabar/Blue-Belt/commit/b71ad07e1554d31d9600e628178107936a2675a3)
+
+5. **User Feedback**: Vercel deployment builds failed due to Prisma client generation mismatches and TypeScript schema validation errors.
+   - **Problem Identified**: Build environment script failed to target dual PostgreSQL (Neon) and SQLite engines correctly during production compilation.
+   - **Change Implemented**: Added `scripts/prisma-generate.js` to dynamically generate the correct Prisma client engine for Vercel deployment.
+   - **Commit Evidence**: [`ac889bb`](https://github.com/parasbabar/Blue-Belt/commit/ac889bb07490059c29d0aa066099b2447990acfe)
+
+6. **User Feedback**: Transaction simulation failed on valid payment submissions due to network passphrase mismatch.
+   - **Problem Identified**: Obsolete network passphrase string was referenced in Stellar SDK initialization calls.
+   - **Change Implemented**: Unified network passphrase across server and client to official Stellar Testnet passphrase (`Test SDF Network ; September 2015`).
+   - **Commit Evidence**: [`120ea62`](https://github.com/parasbabar/Blue-Belt/commit/120ea6228bc213eeec5fa1aa947ae5ffeaeb79bc)
+
+7. **User Feedback**: Raw exception objects caused React rendering crashes on unhandled API errors.
+   - **Problem Identified**: React 19 throws runtime errors when raw objects are passed to JSX children during error state renders.
+   - **Change Implemented**: Created `formatErrorMessage` utility helper and wrapped root layouts in React Error Boundaries.
+   - **Commit Evidence**: [`112ed34`](https://github.com/parasbabar/Blue-Belt/commit/112ed34)
+
+8. **User Feedback**: First-time users needed clear instructions on how to use Stellar Testnet wallets and test payments.
+   - **Problem Identified**: Lack of contextual onboarding documentation inside the core web app.
+   - **Change Implemented**: Designed and implemented interactive `/faq` onboarding guide page with wallet setup instructions and step-by-step walkthroughs.
+   - **Commit Evidence**: [`965ba44`](https://github.com/parasbabar/Blue-Belt/commit/965ba443d526eefdf7cfa8c9735d46e9dfd66ec0)
+
+### Summary Table
+
+| User Feedback | Product Improvement | Evidence / Commit |
 |---|---|---|
-| **Testnet Wallet Recovery** | Added instant **Stellar Friendbot Funding Recovery** banner on unfunded account errors in [`src/app/pay/[requestId]/page.tsx`](./src/app/pay/[requestId]/page.tsx). | [Commit: `feat: add Friendbot recovery`](https://github.com/parasbabar/scholarpay/commits/master) |
-| **Shareable Request Copying** | Implemented 1-click **Copy Payment Link** button with toast notification on Student Dashboard. | [Commit: `ui: polish dashboard interface`](https://github.com/parasbabar/scholarpay/commits/master) |
-| **Smart Contract Transparency** | Displayed live **Soroban Contract Address** badge directly on public payment pages. | [Commit: `feat: add contract transparency`](https://github.com/parasbabar/scholarpay/commits/master) |
-| **Sentry Telemetry Resilience** | Added direct fallback initialization and `Sentry.flush()` wrapper in [`src/lib/monitoring.ts`](./src/lib/monitoring.ts). | [Commit: `fix: improve sentry monitoring`](https://github.com/parasbabar/scholarpay/commits/master) |
-| **Mobile Navigation Polish** | Refactored touch targets and responsive mobile drawer menu in [`src/components/Navbar.tsx`](./src/components/Navbar.tsx). | [Commit: `ui: optimize mobile payment flow`](https://github.com/parasbabar/scholarpay/commits/master) |
+| **Zero XLM Wallet Error** | Added instant Stellar Friendbot Funding Recovery link on payment failure | [`79dff22`](https://github.com/parasbabar/Blue-Belt/commit/79dff2234032d8479e0f31be4d898516d2eeefd0) |
+| **Unnecessary 401 Console Error** | Updated `/api/auth/me` to return HTTP 200 OK with `{ user: null }` for unauthenticated visitors | [`c56d96b`](https://github.com/parasbabar/Blue-Belt/commit/c56d96bfb81f185367b66df2bfdbb5ca5ef9fdbf) |
+| **Admin Dashboard UI Redesign** | Removed redundant user count card & restructured to responsive 3-column metric layout | [`54e16c5`](https://github.com/parasbabar/Blue-Belt/commit/54e16c5a52e9a2b952f1ca9e0ee90efb22a00c6d) |
+| **Analytics Funnel Tracking** | Fixed PostHog initialization, removed `__loaded` guard, and wired tracking across user flows | [`b71ad07`](https://github.com/parasbabar/Blue-Belt/commit/b71ad07e1554d31d9600e628178107936a2675a3) |
+| **Production Build Failure** | Created dynamic Prisma generator script & fixed TypeScript types for Vercel deployment | [`ac889bb`](https://github.com/parasbabar/Blue-Belt/commit/ac889bb07490059c29d0aa066099b2447990acfe) |
+| **Stellar Network Passphrase** | Unified network passphrase to official Testnet (`Test SDF Network ; September 2015`) | [`120ea62`](https://github.com/parasbabar/Blue-Belt/commit/120ea6228bc213eeec5fa1aa947ae5ffeaeb79bc) |
+| **Error Handling Resilience** | Implemented `formatErrorMessage` helper and React Error Boundaries to prevent JSX crashes | [`112ed34`](https://github.com/parasbabar/Blue-Belt/commit/112ed34) |
+| **Onboarding Clarity** | Created interactive `/faq` page with wallet setup guides and payment instructions | [`965ba44`](https://github.com/parasbabar/Blue-Belt/commit/965ba443d526eefdf7cfa8c9735d46e9dfd66ec0) |
 
 ---
 
@@ -249,15 +300,15 @@ ScholarPay is designed mobile-first and fully responsive across smartphones, tab
 
 ## 🖼️ Product Screenshots
 
-Selected screenshots of the ScholarPay product experience are shown below:
+Selected screenshots of the ScholarPay product experience:
 
-[ADD SCREENSHOT: Desktop Landing & Dashboard]
+[ADD SCREENSHOTS: Desktop Landing & Student Dashboard]
 
-[ADD SCREENSHOT: Public Payment Page & Wallet Connection]
+[ADD SCREENSHOTS: Public Payment Page & Wallet Connectors]
 
-[ADD SCREENSHOT: Payment Receipt & Stellar Explorer Link]
+[ADD SCREENSHOTS: Official Digital Payment Receipt & Stellar Explorer Verification]
 
-[ADD SCREENSHOT: Mobile Responsive Interface]
+[ADD SCREENSHOTS: Admin Validation Dashboard & Mobile Interface]
 
 ---
 
@@ -272,8 +323,8 @@ Selected screenshots of the ScholarPay product experience are shown below:
 
 1. **Clone the Repository**:
    ```bash
-   git clone https://github.com/parasbabar/scholarpay.git
-   cd scholarpay
+   git clone https://github.com/parasbabar/Blue-Belt.git
+   cd Blue-Belt
    ```
 
 2. **Install Dependencies**:
@@ -345,7 +396,7 @@ npx tsx tests/stellar.test.ts
 ```
 
 ### Verification Highlights:
-- `npm run build`: Production build passes cleanly with 21 static & dynamic routes generated.
+- `npm run build`: Production build passes cleanly with 20 static & dynamic routes generated.
 - `validation.test.ts`: 10/10 unit tests passed.
 - `stellar.test.ts`: 5/5 on-chain tests passed against live Stellar Testnet RPC.
 
@@ -354,7 +405,7 @@ npx tsx tests/stellar.test.ts
 ## 📁 Project Structure
 
 ```
-scholarpay/
+Blue-Belt/
 ├── contracts/
 │   └── scholarpay/
 │       └── src/lib.rs           # Soroban smart contract (Rust)
