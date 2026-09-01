@@ -25,6 +25,7 @@ jobs:
       - name: Install Rust toolchain
         uses: dtolnay/rust-toolchain@stable
         with:
+          components: rustfmt
           targets: wasm32-unknown-unknown
 
       # Cache Cargo registry and build artifacts
@@ -39,12 +40,12 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-cargo-
 
-      # Formatting check
+      # Formatting check — cargo fmt was applied locally before commit
       - name: Check Rust formatting
         run: cargo fmt --check --manifest-path contracts/scholarpay/Cargo.toml
 
-      # Unit tests (requires Linux native Soroban host — ubuntu-latest provides this)
-      # --features testutils enables mock_all_auths, Address::generate, etc. used in test.rs
+      # Unit tests — --features testutils enables Soroban mock environment
+      # (mock_all_auths, Address::generate, register_stellar_asset_contract_v2, etc.)
       - name: Run Soroban contract tests
         run: cargo test --manifest-path contracts/scholarpay/Cargo.toml --features testutils
 
@@ -85,7 +86,7 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      # Node.js 22 (matches local dev environment)
+      # Node.js 22 (matches local dev environment, avoids Node 20 deprecation warnings)
       - name: Setup Node.js 22
         uses: actions/setup-node@v4
         with:
@@ -97,14 +98,17 @@ jobs:
         run: npm ci
 
       # Generate Prisma Client for SQLite
+      # This script auto-detects SQLite vs PostgreSQL from DATABASE_URL
       - name: Generate Prisma Client
         run: node scripts/prisma-generate.js
         env:
           DATABASE_URL: "file:./dev.db"
 
-      # Push schema to SQLite (creates tables needed by auth tests)
+      # Push schema to SQLite — creates tables needed by auth/integration tests.
+      # Note: Prisma 7 db push does NOT support --skip-generate; client was
+      # already generated in the previous step.
       - name: Push Prisma schema to SQLite
-        run: npx prisma db push --config prisma7.config.ts --skip-generate
+        run: npx prisma db push --config prisma7.config.ts
         env:
           DATABASE_URL: "file:./dev.db"
 

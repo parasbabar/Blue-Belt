@@ -22,8 +22,7 @@ fn test_payment_flow() {
     // Create a mock Stellar asset contract (wrapped native token)
     let token_admin = Address::generate(&env);
     let token_contract_id = env.register_stellar_asset_contract_v2(token_admin.clone());
-    let sac_client =
-        token::StellarAssetClient::new(&env, &token_contract_id.address());
+    let sac_client = token::StellarAssetClient::new(&env, &token_contract_id.address());
     let token_client = token::Client::new(&env, &token_contract_id.address());
 
     // Mint 1000 tokens to sender
