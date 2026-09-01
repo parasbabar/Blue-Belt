@@ -19,9 +19,10 @@ soroban-sdk = "22.0.0"
 [dev-dependencies]
 soroban-sdk = { version = "22.0.0", features = ["testutils"] }
 
-# Pin ed25519-dalek to 2.1.0 — soroban-env-host 22.x is not compatible with
-# ed25519-dalek 3.0.0 (breaking trait change). This pins the transitive dep.
-ed25519-dalek = "=2.1.0"
+# Pin ed25519-dalek to exactly 2.1.1.
+# 2.1.1 satisfies soroban-env-host's ^2.1.1 constraint while preventing
+# ed25519-dalek 3.0.0 (which has breaking trait changes) from being selected.
+ed25519-dalek = "=2.1.1"
 
 [profile.release]
 opt-level = "z"

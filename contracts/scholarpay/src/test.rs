@@ -1,10 +1,7 @@
 // Tests compiled only when running: cargo test --features testutils
 
 use super::{ScholarPayContract, ScholarPayContractClient};
-use soroban_sdk::{
-    testutils::{Address as _, Events},
-    token, Address, Env, IntoVal, Symbol,
-};
+use soroban_sdk::{testutils::Address as _, token, Address, Env, Symbol};
 
 #[test]
 fn test_payment_flow() {
