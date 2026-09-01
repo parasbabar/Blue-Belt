@@ -62,3 +62,7 @@ impl ScholarPayContract {
         env.storage().persistent().has(&key)
     }
 }
+
+#[cfg(all(test, feature = "testutils"))]
+mod test;
+

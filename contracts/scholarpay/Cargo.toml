@@ -4,6 +4,8 @@ version = "0.1.0"
 edition = "2021"
 
 [lib]
+# cdylib  → produces the .wasm artifact for Stellar deployment
+# rlib    → required so `cargo test` can link a native test binary
 crate-type = ["cdylib", "rlib"]
 
 [dependencies]
@@ -13,6 +15,10 @@ soroban-sdk = "22.0.0"
 # Run: cargo test --features testutils (on Linux/macOS CI)
 [dev-dependencies]
 soroban-sdk = { version = "22.0.0", features = ["testutils"] }
+
+# Pin ed25519-dalek to 2.1.0 — soroban-env-host 22.x is not compatible with
+# ed25519-dalek 3.0.0 (breaking trait change). This pins the transitive dep.
+ed25519-dalek = "=2.1.0"
 
 [profile.release]
 opt-level = "z"

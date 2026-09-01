@@ -1,4 +1,4 @@
-#![cfg(test)]
+// Tests compiled only when running: cargo test --features testutils
 
 use super::{ScholarPayContract, ScholarPayContractClient};
 use soroban_sdk::{

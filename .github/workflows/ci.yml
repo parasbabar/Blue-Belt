@@ -1,4 +1,4 @@
-﻿name: CI
+name: CI
 
 on:
   push:
@@ -44,8 +44,9 @@ jobs:
         run: cargo fmt --check --manifest-path contracts/scholarpay/Cargo.toml
 
       # Unit tests (requires Linux native Soroban host — ubuntu-latest provides this)
+      # --features testutils enables mock_all_auths, Address::generate, etc. used in test.rs
       - name: Run Soroban contract tests
-        run: cargo test --manifest-path contracts/scholarpay/Cargo.toml
+        run: cargo test --manifest-path contracts/scholarpay/Cargo.toml --features testutils
 
       # Build WASM release artifact
       - name: Build Soroban WASM
