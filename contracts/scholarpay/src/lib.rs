@@ -63,5 +63,5 @@ impl ScholarPayContract {
     }
 }
 
-#[cfg(all(test, feature = "testutils"))]
+#[cfg(test)]
 mod test;
