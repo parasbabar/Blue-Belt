@@ -132,7 +132,7 @@ export default function HomePage() {
             { step: "01", title: "Student Creates a Payment Request", desc: "Log in, enter payment details (purpose, amount in XLM, recipient address, deadline), and share a unique payment link with your family or sponsor.", icon: FileText },
             { step: "02", title: "Sender Reviews & Signs", desc: "The sender opens the link, connects their Stellar wallet (Freighter or Albedo), reviews the exact amount, and signs the transaction — no private keys ever shared.", icon: Wallet },
             { step: "03", title: "Instant On-Chain Confirmation", desc: "ScholarPay submits the signed transaction to Stellar Testnet and independently verifies the real transaction hash. Your dashboard updates in seconds.", icon: CheckCircle },
-          ].map((item, i) => (
+          ].map((item) => (
             <div key={item.step} className="card card-hover flex gap-5 items-start">
               <div className="flex-shrink-0 w-12 h-12 rounded-full gradient-bg flex items-center justify-center font-bold text-sm text-white">
                 {item.step}

@@ -1,9 +1,7 @@
-import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import {
-  GraduationCap, Wallet, Zap, Shield, CheckCircle, ExternalLink, HelpCircle,
-  FileText, ArrowRight, CornerDownRight,
+  Zap, HelpCircle,
 } from "lucide-react";
 
 export default function FAQPage() {

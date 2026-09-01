@@ -5,8 +5,8 @@ import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import {
-  GraduationCap, Wallet, CheckCircle, Clock, AlertTriangle, ExternalLink,
-  ArrowRight, Shield, Zap, RefreshCw, Copy, Check, DollarSign,
+  Wallet, CheckCircle, AlertTriangle, ExternalLink,
+  ArrowRight, Shield, Zap,
 } from "lucide-react";
 import { shortenAddress, isValidStellarAddress, prepareXLMPaymentTransaction, CONTRACT_ID, STELLAR_NETWORK_PASSPHRASE } from "@/lib/stellar";
 import { isConnected, requestAccess, signTransaction } from "@stellar/freighter-api";

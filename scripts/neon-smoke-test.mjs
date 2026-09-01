@@ -17,6 +17,7 @@ async function main() {
   let pass = 0, fail = 0;
   const report = (label, ok, extra) => {
     console.log((ok ? 'PASS' : 'FAIL') + ': ' + label + (extra ? ' — ' + extra : ''));
+    // eslint-disable-next-line @typescript-eslint/no-unused-expressions
     ok ? pass++ : fail++;
   };
 

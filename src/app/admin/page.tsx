@@ -1,12 +1,10 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import {
-  BarChart3, FileText, CheckCircle, Star, Zap,
-  RefreshCw, Shield, ArrowLeft,
+  FileText, CheckCircle, Star, Zap, RefreshCw,
 } from "lucide-react";
 
 interface AdminStats {

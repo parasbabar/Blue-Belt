@@ -8,7 +8,7 @@ import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import {
   FileText, Plus, CheckCircle, Clock, AlertTriangle, ExternalLink, Copy,
-  Check, Wallet, RefreshCw, GraduationCap, DollarSign, Send, Zap, LogOut,
+  Check, RefreshCw, DollarSign, Zap, LogOut,
 } from "lucide-react";
 import { shortenAddress, isValidStellarAddress } from "@/lib/stellar";
 import { formatErrorMessage } from "@/lib/utils";
