@@ -15,6 +15,7 @@ ScholarPay eliminates expensive international bank transfer fees and opaque SWIF
 - **User Validation Sheet:** https://docs.google.com/spreadsheets/d/1OsfOnBLNPz6mK8s8b7F9Cuu4pZOCbF_BdRYMAWzUuOM/edit?usp=sharing
 - **GitHub Repository:** [https://github.com/parasbabar/Blue-Belt](https://github.com/parasbabar/Blue-Belt)
 - **Stellar Testnet Contract:** [`CAQWR6A4JQIPR5IVPIF47KB2TJQJYFC6IDXXUZ2DRMOFFE4PDONQ7RCQ`](https://stellar.expert/explorer/testnet/contract/CAQWR6A4JQIPR5IVPIF47KB2TJQJYFC6IDXXUZ2DRMOFFE4PDONQ7RCQ)
+- X link:** https://x.com/ParasBabar17809/status/2094689930220032510?s=20
 
 ---
 
