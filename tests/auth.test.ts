@@ -66,7 +66,7 @@ async function runAuthTests() {
 
     // Clean up after test
     await prisma.user.delete({ where: { id: user.id } });
-  } catch (err: any) {
+  } catch (err: unknown) {
     console.error("Test execution exception:", err);
     failed++;
   }

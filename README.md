@@ -396,6 +396,62 @@ npx tsx tests/stellar.test.ts
 
 ---
 
+## 🛠️ CI/CD Workflows & Automation
+
+ScholarPay features enterprise-grade automated Continuous Integration (CI) and Continuous Deployment (CD) workflows powered by GitHub Actions.
+
+### 1. Continuous Integration (`.github/workflows/ci.yml`)
+
+The CI pipeline automatically triggers on every `push` to `master` and every `pull_request` targeting `master`. It consists of two isolated, parallel jobs:
+
+#### **Job A — Rust / Soroban Smart Contract**
+- **Rust Toolchain Setup**: Installs stable Rust with the `wasm32-unknown-unknown` compilation target.
+- **Cargo Caching**: Caches `~/.cargo/registry`, `~/.cargo/git`, and `contracts/scholarpay/target`.
+- **Code Formatting**: Enforces `cargo fmt --check --manifest-path contracts/scholarpay/Cargo.toml`.
+- **Unit & Property Tests**: Executes `cargo test --manifest-path contracts/scholarpay/Cargo.toml` on an Ubuntu host.
+- **WASM Release Build**: Builds `cargo build --manifest-path contracts/scholarpay/Cargo.toml --target wasm32-unknown-unknown --release`.
+- **Artifact Verification**: Verifies `scholarpay.wasm` artifact exists.
+- **Artifact Publishing**: Uploads `scholarpay.wasm` to GitHub Actions workflow artifacts (`actions/upload-artifact@v4`).
+
+#### **Job B — Next.js Frontend**
+- **Node.js Environment**: Configured with Node.js 22 and deterministic `npm ci`.
+- **Database Schema Setup**: Automatically runs `node scripts/prisma-generate.js` and `npx prisma db push`.
+- **Linting Verification**: Runs `npm run lint` (ESLint) ensuring 0 errors.
+- **Suite Execution**: Executes all 3 real test suites:
+  - `npx tsx tests/validation.test.ts` (Address validation & status transitions)
+  - `npx tsx tests/auth.test.ts` (User registration, password hashing & JWT sessions)
+  - `npx tsx tests/stellar.test.ts` (Horizon Testnet RPC on-chain ledger queries)
+- **Production Build**: Executes `npm run build` to verify production compilation across all 20 routes.
+
+---
+
+### 2. Continuous Deployment (`.github/workflows/deploy.yml`)
+
+The CD pipeline handles production deployments and supports both automated triggers (upon successful CI completion) and manual execution (`workflow_dispatch`).
+
+#### **Deploy Next.js Frontend (Vercel)**
+- **Workflow File**: `.github/workflows/deploy.yml` (`deploy-vercel` job).
+- **Trigger**: Automatically executes after successful CI runs on `master`, or via manual `workflow_dispatch`.
+- **Secret Guards**: Uses step-level conditional checks (`steps.check-secrets.outputs.has_secrets == 'true'`) so the pipeline passes gracefully when secrets are not yet added.
+- **Required GitHub Secrets**:
+  - `VERCEL_TOKEN`: Vercel Personal Access Token.
+  - `VERCEL_ORG_ID`: Vercel Team/Account Organization ID.
+  - `VERCEL_PROJECT_ID`: Vercel Project Identifier.
+
+#### **Deploy Soroban Contract (Stellar Testnet)**
+- **Workflow File**: `.github/workflows/deploy.yml` (`deploy-soroban` job).
+- **Trigger**: Manual trigger via `workflow_dispatch` only.
+- **Required GitHub Secrets**:
+  - `STELLAR_SECRET_KEY`: Testnet secret key (`S...`) used to deploy the contract via Stellar CLI.
+
+#### **Configuring GitHub Secrets**
+1. Navigate to your GitHub repository: `Settings` → `Secrets and variables` → `Actions`.
+2. Click **New repository secret**.
+3. Enter the secret name (e.g. `VERCEL_TOKEN`) and its corresponding value.
+4. View real-time workflow runs under the **Actions** tab of the GitHub repository.
+
+---
+
 ## 📁 Project Structure
 
 ```

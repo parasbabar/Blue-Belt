@@ -338,7 +338,7 @@ export default function DashboardPage() {
                     placeholder="G..."
                   />
                   <p className="text-[10px] text-[var(--color-muted)] mt-1">
-                    Must start with 'G' (Stellar public key). Sender will transfer funds to this address.
+                    Must start with &apos;G&apos; (Stellar public key). Sender will transfer funds to this address.
                   </p>
                 </div>
 

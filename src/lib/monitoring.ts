@@ -14,7 +14,7 @@ if (SENTRY_DSN && SENTRY_DSN.startsWith("https://")) {
 }
 
 export const monitoring = {
-  captureException: (error: any, context?: Record<string, any>) => {
+  captureException: (error: unknown, context?: Record<string, unknown>) => {
     // Prevent logging sensitive fields (passwords, JWTs, keys)
     const safeContext = { ...context };
     if (safeContext.password) delete safeContext.password;
@@ -22,7 +22,8 @@ export const monitoring = {
     if (safeContext.secret) delete safeContext.secret;
 
     if (process.env.NODE_ENV === "development") {
-      console.error("[Monitoring Captured Error]:", error?.message || error, safeContext);
+      const errObj = error as { message?: string };
+      console.error("[Monitoring Captured Error]:", errObj?.message || error, safeContext);
     }
 
     Sentry.captureException(error, { extra: safeContext });

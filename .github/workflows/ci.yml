@@ -1,0 +1,168 @@
+﻿name: CI
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+
+permissions:
+  contents: read
+
+jobs:
+  # ============================================================
+  # JOB A — Rust / Soroban Smart Contract
+  # ============================================================
+  rust-contract:
+    name: "Rust / Soroban Contract"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Install stable Rust toolchain (soroban-sdk 22 compatible)
+      - name: Install Rust toolchain
+        uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: wasm32-unknown-unknown
+
+      # Cache Cargo registry and build artifacts
+      - name: Cache Cargo dependencies
+        uses: actions/cache@v4
+        with:
+          path: |
+            ~/.cargo/registry
+            ~/.cargo/git
+            contracts/scholarpay/target
+          key: ${{ runner.os }}-cargo-${{ hashFiles('contracts/scholarpay/Cargo.toml') }}
+          restore-keys: |
+            ${{ runner.os }}-cargo-
+
+      # Formatting check
+      - name: Check Rust formatting
+        run: cargo fmt --check --manifest-path contracts/scholarpay/Cargo.toml
+
+      # Unit tests (requires Linux native Soroban host — ubuntu-latest provides this)
+      - name: Run Soroban contract tests
+        run: cargo test --manifest-path contracts/scholarpay/Cargo.toml
+
+      # Build WASM release artifact
+      - name: Build Soroban WASM
+        run: |
+          cargo build \
+            --manifest-path contracts/scholarpay/Cargo.toml \
+            --target wasm32-unknown-unknown \
+            --release
+
+      # Verify the .wasm file was produced
+      - name: Verify WASM artifact exists
+        run: |
+          WASM_PATH="contracts/scholarpay/target/wasm32-unknown-unknown/release/scholarpay.wasm"
+          if [ ! -f "$WASM_PATH" ]; then
+            echo "ERROR: Expected WASM artifact not found at $WASM_PATH"
+            exit 1
+          fi
+          echo "WASM artifact verified: $(du -sh $WASM_PATH)"
+
+      # Upload WASM binary as workflow artifact
+      - name: Upload WASM artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: scholarpay-wasm
+          path: contracts/scholarpay/target/wasm32-unknown-unknown/release/scholarpay.wasm
+          retention-days: 30
+
+  # ============================================================
+  # JOB B — Next.js Frontend
+  # ============================================================
+  nextjs-frontend:
+    name: "Next.js Frontend"
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # Node.js 22 (matches local dev environment)
+      - name: Setup Node.js 22
+        uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: "npm"
+
+      # Install all dependencies from lock file (deterministic)
+      - name: Install dependencies
+        run: npm ci
+
+      # Generate Prisma Client for SQLite
+      - name: Generate Prisma Client
+        run: node scripts/prisma-generate.js
+        env:
+          DATABASE_URL: "file:./dev.db"
+
+      # Push schema to SQLite (creates tables needed by auth tests)
+      - name: Push Prisma schema to SQLite
+        run: npx prisma db push --config prisma7.config.ts --skip-generate
+        env:
+          DATABASE_URL: "file:./dev.db"
+
+      # ESLint — must pass with zero errors
+      - name: Run ESLint
+        run: npm run lint
+
+      # Validation unit tests (pure logic, no DB)
+      - name: Run validation tests
+        run: npx tsx tests/validation.test.ts
+        env:
+          DATABASE_URL: "file:./dev.db"
+          JWT_SECRET: "ci-test-secret-key-minimum-32-characters"
+          NEXT_PUBLIC_STELLAR_NETWORK: "TESTNET"
+          NEXT_PUBLIC_STELLAR_NETWORK_PASSPHRASE: "Test SDF Network ; September 2015"
+          NEXT_PUBLIC_STELLAR_HORIZON_URL: "https://horizon-testnet.stellar.org"
+          NEXT_PUBLIC_STELLAR_RPC_URL: "https://soroban-testnet.stellar.org"
+          NEXT_PUBLIC_SOROBAN_CONTRACT_ID: "CAQWR6A4JQIPR5IVPIF47KB2TJQJYFC6IDXXUZ2DRMOFFE4PDONQ7RCQ"
+          NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+
+      # Auth & DB integration tests
+      - name: Run auth and database tests
+        run: npx tsx tests/auth.test.ts
+        env:
+          DATABASE_URL: "file:./dev.db"
+          JWT_SECRET: "ci-test-secret-key-minimum-32-characters"
+          NEXT_PUBLIC_STELLAR_NETWORK: "TESTNET"
+          NEXT_PUBLIC_STELLAR_NETWORK_PASSPHRASE: "Test SDF Network ; September 2015"
+          NEXT_PUBLIC_STELLAR_HORIZON_URL: "https://horizon-testnet.stellar.org"
+          NEXT_PUBLIC_STELLAR_RPC_URL: "https://soroban-testnet.stellar.org"
+          NEXT_PUBLIC_SOROBAN_CONTRACT_ID: "CAQWR6A4JQIPR5IVPIF47KB2TJQJYFC6IDXXUZ2DRMOFFE4PDONQ7RCQ"
+          NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+
+      # Stellar on-chain tests (queries live Stellar Testnet Horizon)
+      - name: Run Stellar on-chain tests
+        run: npx tsx tests/stellar.test.ts
+        env:
+          DATABASE_URL: "file:./dev.db"
+          JWT_SECRET: "ci-test-secret-key-minimum-32-characters"
+          NEXT_PUBLIC_STELLAR_NETWORK: "TESTNET"
+          NEXT_PUBLIC_STELLAR_NETWORK_PASSPHRASE: "Test SDF Network ; September 2015"
+          NEXT_PUBLIC_STELLAR_HORIZON_URL: "https://horizon-testnet.stellar.org"
+          NEXT_PUBLIC_STELLAR_RPC_URL: "https://soroban-testnet.stellar.org"
+          NEXT_PUBLIC_SOROBAN_CONTRACT_ID: "CAQWR6A4JQIPR5IVPIF47KB2TJQJYFC6IDXXUZ2DRMOFFE4PDONQ7RCQ"
+          NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+
+      # Production build — validates the full Next.js application compiles
+      - name: Build Next.js production
+        run: npm run build
+        env:
+          DATABASE_URL: "file:./dev.db"
+          JWT_SECRET: "ci-test-secret-key-minimum-32-characters"
+          NEXT_PUBLIC_STELLAR_NETWORK: "TESTNET"
+          NEXT_PUBLIC_STELLAR_NETWORK_PASSPHRASE: "Test SDF Network ; September 2015"
+          NEXT_PUBLIC_STELLAR_HORIZON_URL: "https://horizon-testnet.stellar.org"
+          NEXT_PUBLIC_STELLAR_RPC_URL: "https://soroban-testnet.stellar.org"
+          NEXT_PUBLIC_SOROBAN_CONTRACT_ID: "CAQWR6A4JQIPR5IVPIF47KB2TJQJYFC6IDXXUZ2DRMOFFE4PDONQ7RCQ"
+          NEXT_PUBLIC_APP_URL: "http://localhost:3000"
+          NEXT_PUBLIC_POSTHOG_KEY: "phc_ci_placeholder"
+          NEXT_PUBLIC_POSTHOG_HOST: "https://app.posthog.com"
+          NEXT_PUBLIC_SENTRY_DSN: ""
+          SENTRY_DSN: ""

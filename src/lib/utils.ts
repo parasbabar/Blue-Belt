@@ -14,7 +14,7 @@ export function formatErrorMessage(err: unknown, defaultMsg = "An unexpected err
   }
 
   if (typeof err === "object") {
-    const obj = err as Record<string, any>;
+    const obj = err as Record<string, unknown>;
     
     // Handles { code, message } e.g. from Freighter/Albedo wallet extension
     if (typeof obj.message === "string" && obj.message) {
@@ -26,8 +26,9 @@ export function formatErrorMessage(err: unknown, defaultMsg = "An unexpected err
       return obj.error;
     }
     if (typeof obj.error === "object" && obj.error !== null) {
-      if (typeof obj.error.message === "string" && obj.error.message) {
-        return obj.error.code ? `[${obj.error.code}] ${obj.error.message}` : obj.error.message;
+      const errObj = obj.error as Record<string, unknown>;
+      if (typeof errObj.message === "string" && errObj.message) {
+        return errObj.code ? `[${errObj.code}] ${errObj.message}` : errObj.message;
       }
     }
 

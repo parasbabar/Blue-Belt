@@ -1,14 +1,10 @@
 import {
   Horizon,
-  Networks,
   Asset,
   Operation,
   TransactionBuilder,
   BASE_FEE,
   StrKey,
-  nativeToScVal,
-  Address,
-  xdr,
 } from "@stellar/stellar-sdk";
 import { rpc as SorobanRpc } from "@stellar/stellar-sdk";
 import { env } from "./env";
@@ -44,8 +40,9 @@ export async function getAccountInfo(address: string) {
   try {
     const account = await horizonServer.loadAccount(address);
     return { success: true, account };
-  } catch (err: any) {
-    if (err?.response?.status === 404) {
+  } catch (err: unknown) {
+    const e = err as { response?: { status?: number } };
+    if (e?.response?.status === 404) {
       return { success: false, error: "Account not found. Please fund your testnet account via Friendbot." };
     }
     return { success: false, error: "Failed to load account from Stellar network." };
@@ -86,8 +83,9 @@ export async function prepareXLMPaymentTransaction(
       .build();
 
     return { xdr: transaction.toXDR() };
-  } catch (err: any) {
-    const msg = err?.message || "Failed to prepare transaction.";
+  } catch (err: unknown) {
+    const e = err as { message?: string };
+    const msg = e?.message || "Failed to prepare transaction.";
     if (msg.includes("not found")) {
       return { error: "Sender account not found on testnet. Please fund via Friendbot." };
     }
@@ -120,9 +118,20 @@ export async function verifyTransaction(txHash: string): Promise<{
       .forTransaction(txHash)
       .call();
 
+    type PaymentRecord = {
+      type: string;
+      to?: string;
+      account?: string;
+      amount?: string;
+      starting_balance?: string;
+      asset_type?: string;
+      asset_code?: string;
+      asset_issuer?: string;
+    };
+
     const paymentOp = ops.records.find(
-      (op: any) => op.type === "payment" || op.type === "create_account"
-    ) as any;
+      (op: { type: string }) => op.type === "payment" || op.type === "create_account"
+    ) as PaymentRecord | undefined;
 
     if (!paymentOp) {
       return { valid: false, error: "No payment operation found in transaction." };
@@ -135,10 +144,11 @@ export async function verifyTransaction(txHash: string): Promise<{
       amount: paymentOp.amount || paymentOp.starting_balance,
       asset: paymentOp.asset_type === "native" ? "XLM" : `${paymentOp.asset_code}:${paymentOp.asset_issuer}`,
     };
-  } catch (err: any) {
-    if (err?.response?.status === 404) {
+  } catch (err: unknown) {
+    const e = err as { response?: { status?: number }; message?: string };
+    if (e?.response?.status === 404) {
       return { valid: false, error: "Transaction not found on testnet." };
     }
-    return { valid: false, error: err?.message || "Verification failed." };
+    return { valid: false, error: e?.message || "Verification failed." };
   }
 }

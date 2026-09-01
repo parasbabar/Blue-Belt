@@ -1,5 +1,5 @@
 #![no_std]
-use soroban_sdk::{contract, contractimpl, contracttype, Address, Env, Symbol, token};
+use soroban_sdk::{contract, contractimpl, contracttype, token, Address, Env, Symbol};
 
 #[contracttype]
 pub enum DataKey {
@@ -46,7 +46,13 @@ impl ScholarPayContract {
         // Emit verifiable on-chain event
         env.events().publish(
             (Symbol::new(&env, "scholarpay"), Symbol::new(&env, "pay")),
-            (payment_id, sender.clone(), recipient.clone(), amount, token.clone()),
+            (
+                payment_id,
+                sender.clone(),
+                recipient.clone(),
+                amount,
+                token.clone(),
+            ),
         );
     }
 

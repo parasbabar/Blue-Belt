@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState, use } from "react";
+import { useEffect, useState, useCallback, use } from "react";
 import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
@@ -54,7 +54,7 @@ export default function PaymentRequestPage({ params }: { params: Promise<{ reque
   const [confirmedPaymentId, setConfirmedPaymentId] = useState("");
 
   // Load payment request data
-  const loadRequest = async () => {
+  const loadRequest = useCallback(async () => {
     setLoading(true);
     setError("");
     try {
@@ -72,16 +72,16 @@ export default function PaymentRequestPage({ params }: { params: Promise<{ reque
           }
         }
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setError(formatErrorMessage(err, "Failed to load payment request."));
     } finally {
       setLoading(false);
     }
-  };
+  }, [requestId]);
 
   useEffect(() => {
     loadRequest();
-  }, [requestId]);
+  }, [loadRequest]);
 
   // Connect Freighter wallet
   const connectFreighter = async () => {
@@ -104,7 +104,7 @@ export default function PaymentRequestPage({ params }: { params: Promise<{ reque
         setStep("REVIEW");
         analytics.trackWalletConnected("freighter", access.address);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       const safeMsg = formatErrorMessage(err, "Failed to connect Freighter wallet.");
       setWalletErr(safeMsg);
       monitoring.captureException(err, { context: "connectFreighter" });
@@ -126,7 +126,7 @@ export default function PaymentRequestPage({ params }: { params: Promise<{ reque
         setStep("REVIEW");
         analytics.trackWalletConnected("albedo", res.pubkey);
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       const safeMsg = formatErrorMessage(err, "Albedo connection rejected or closed.");
       setWalletErr(safeMsg);
     } finally {
@@ -253,7 +253,7 @@ export default function PaymentRequestPage({ params }: { params: Promise<{ reque
         setReq({ ...req, status: "CONFIRMED" });
         analytics.trackTransactionConfirmed(req.id, hash, parseFloat(req.amount));
       }
-    } catch (err: any) {
+    } catch (err: unknown) {
       setStep("FAILED");
       const safeMsg = formatErrorMessage(err, "Payment process encountered an error.");
       setWalletErr(safeMsg);

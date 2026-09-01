@@ -52,7 +52,13 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }, []);
 
   useEffect(() => {
-    refreshUser().finally(() => setLoading(false));
+    let isMounted = true;
+    refreshUser().finally(() => {
+      if (isMounted) setLoading(false);
+    });
+    return () => {
+      isMounted = false;
+    };
   }, [refreshUser]);
 
   const login = async (email: string, password: string) => {

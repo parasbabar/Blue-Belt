@@ -5,8 +5,7 @@ import Link from "next/link";
 import { Navbar } from "@/components/Navbar";
 import { Footer } from "@/components/Footer";
 import {
-  CheckCircle, ExternalLink, Shield, Zap, Copy, Check, Star, ArrowLeft,
-  FileText, Download, Share2,
+  CheckCircle, ExternalLink, Zap, Copy, Check, Star, ArrowLeft,
 } from "lucide-react";
 import { shortenAddress, CONTRACT_ID } from "@/lib/stellar";
 import { analytics } from "@/lib/analytics";
